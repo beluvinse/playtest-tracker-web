@@ -56,8 +56,9 @@ export interface UpdateBugRequest extends CreateBugRequest {
 // PATCH: every field is optional, and only the ones sent are changed
 export type PatchBugRequest = Partial<UpdateBugRequest>
 
-// Query string for GET /api/projects/{projectId}/bugs and GET /api/bugs
-export interface BugListParams {
+// Query string for GET /api/projects/{projectId}/bugs and GET /api/bugs.
+// A type (not an interface) so it can be passed straight to apiRequest as a query.
+export type BugListParams = {
   status?: BugStatus
   severity?: Severity
   search?: string
