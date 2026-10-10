@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
-import { bugKeys, getProjectBugs } from '../api/bugs'
 import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
-import type { BugListParams, ProjectDto } from '../api/types'
+import type { ProjectDto } from '../api/types'
 import { BugList } from '../components/BugList'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { openCritical, useProjectBugCount } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 import { projectCode } from '../utils/projectCode'
 
@@ -60,11 +60,10 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
   )
 }
 
-// "3 open · 1 critical · 5 total". The API has no "counts" endpoint, so each number is a
-// list request with pageSize 1: we only read its totalCount, not the bug that comes with it.
+// "3 open · 1 critical · 5 total" (critical = critical and still open)
 function BugStats({ projectId, total }: { projectId: number; total: number }) {
-  const open = useBugCount(projectId, { status: 'Open' })
-  const critical = useBugCount(projectId, { severity: 'Critical' })
+  const open = useProjectBugCount(projectId, { status: 'Open' })
+  const critical = useProjectBugCount(projectId, openCritical)
 
   return (
     <span className="band-stats">
@@ -72,15 +71,6 @@ function BugStats({ projectId, total }: { projectId: number; total: number }) {
       <span className="stat-critical">{critical ?? '–'}</span> critical · {total} total
     </span>
   )
-}
-
-function useBugCount(projectId: number, filter: BugListParams) {
-  const params = { ...filter, pageSize: 1 }
-  const { data } = useQuery({
-    queryKey: bugKeys.ofProject(projectId, params),
-    queryFn: () => getProjectBugs(projectId, params),
-  })
-  return data?.totalCount
 }
 
 function ProjectNotFound() {

@@ -1,10 +1,10 @@
 import { useQuery } from '@tanstack/react-query'
 import { Link, Navigate } from 'react-router'
-import { bugKeys, searchBugs } from '../api/bugs'
 import { getProjects, projectKeys } from '../api/projects'
-import type { BugListParams, ProjectDto } from '../api/types'
+import type { ProjectDto } from '../api/types'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { ProjectGlyph } from '../components/ProjectGlyph'
+import { openCritical, useAllBugCount, useProjectsBugCounts } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 import { projectCode } from '../utils/projectCode'
 
@@ -41,9 +41,14 @@ export function ProjectsPage() {
 
 function StudioOverview({ projects }: { projects: ProjectDto[] }) {
   const totalBugs = projects.reduce((sum, project) => sum + project.bugCount, 0)
-  // Across every project (GET /api/bugs). Same trick as the project page: pageSize 1, read totalCount.
-  const openBugs = useBugCount({ status: 'Open' })
-  const openCritical = useBugCount({ status: 'Open', severity: 'Critical' })
+  // Across every project (GET /api/bugs)
+  const openBugs = useAllBugCount({ status: 'Open' })
+  const criticalCount = useAllBugCount(openCritical)
+  // And per project, to flag the rows that need attention
+  const criticalByProject = useProjectsBugCounts(
+    projects.map((project) => project.id),
+    openCritical,
+  )
 
   return (
     <>
@@ -51,10 +56,10 @@ function StudioOverview({ projects }: { projects: ProjectDto[] }) {
         <div className="band-eyebrow">studio overview</div>
         <h1 className="overview-headline">
           {projects.length} games in development.{' '}
-          {openCritical === undefined ? null : openCritical > 0 ? (
+          {criticalCount === undefined ? null : criticalCount > 0 ? (
             <span className="headline-alert">
-              <span className="mono">{openCritical}</span> critical{' '}
-              {openCritical === 1 ? 'bug is' : 'bugs are'} still open.
+              <span className="mono">{criticalCount}</span> critical{' '}
+              {criticalCount === 1 ? 'bug is' : 'bugs are'} still open.
             </span>
           ) : (
             <span className="headline-calm">Nothing critical is open.</span>
@@ -63,7 +68,7 @@ function StudioOverview({ projects }: { projects: ProjectDto[] }) {
         <dl className="overview-stats">
           <Stat label="Games" value={projects.length} />
           <Stat label="Open bugs" value={openBugs} />
-          <Stat label="Open critical" value={openCritical} tone="critical" />
+          <Stat label="Open critical" value={criticalCount} tone="critical" />
           <Stat label="Bugs reported" value={totalBugs} />
         </dl>
       </section>
@@ -73,26 +78,53 @@ function StudioOverview({ projects }: { projects: ProjectDto[] }) {
           <span />
           <span>Game</span>
           <span className="col-description">Description</span>
+          <span>Critical</span>
           <span>Bugs</span>
           <span className="col-created">Created</span>
         </div>
         <ul>
-          {projects.map((project) => (
-            <li key={project.id}>
-              <Link to={`/projects/${project.id}`} className="project-row">
-                <ProjectGlyph projectId={project.id} size={28} />
-                <span className="project-name">
-                  {project.name} <span className="row-code">{projectCode(project.name)}</span>
-                </span>
-                <span className="col-description">{project.description}</span>
-                <span className="mono">{project.bugCount}</span>
-                <span className="col-created mono">{formatDate(project.createdAt)}</span>
-              </Link>
-            </li>
-          ))}
+          {projects.map((project) => {
+            const critical = criticalByProject[project.id]
+            return (
+              <li key={project.id}>
+                <Link
+                  to={`/projects/${project.id}`}
+                  className="project-row"
+                  data-critical={critical !== undefined && critical > 0}
+                >
+                  <ProjectGlyph projectId={project.id} size={28} />
+                  <span className="project-name">
+                    {project.name} <span className="row-code">{projectCode(project.name)}</span>
+                  </span>
+                  <span className="col-description">{project.description}</span>
+                  <CriticalFlag count={critical} />
+                  <span className="mono">{project.bugCount}</span>
+                  <span className="col-created mono">{formatDate(project.createdAt)}</span>
+                </Link>
+              </li>
+            )
+          })}
         </ul>
       </div>
     </>
+  )
+}
+
+// "■ 2 open" in red when a project has open critical bugs, a quiet "none" when it doesn't
+function CriticalFlag({ count }: { count: number | undefined }) {
+  if (count === undefined) {
+    return <span className="critical-flag">…</span>
+  }
+
+  if (count === 0) {
+    return <span className="critical-flag">none</span>
+  }
+
+  return (
+    <span className="critical-flag" data-alert="true">
+      <span className="critical-dot" aria-hidden="true" />
+      {count} open
+    </span>
   )
 }
 
@@ -110,13 +142,4 @@ function Stat({ label, value, tone }: StatProps) {
       <dd>{value ?? '–'}</dd>
     </div>
   )
-}
-
-function useBugCount(filter: BugListParams) {
-  const params = { ...filter, pageSize: 1 }
-  const { data } = useQuery({
-    queryKey: bugKeys.search(params),
-    queryFn: () => searchBugs(params),
-  })
-  return data?.totalCount
 }

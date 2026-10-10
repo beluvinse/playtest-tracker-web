@@ -531,7 +531,7 @@ h2 {
 
 .project-row {
   display: grid;
-  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 80px 120px;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 96px 56px 110px;
   column-gap: 20px;
   align-items: center;
   min-height: 52px;
@@ -588,6 +588,33 @@ a.project-row .col-created {
   color: var(--text-muted);
 }
 
+/* ---- Projects with open critical bugs ---- */
+
+/* A red edge on the left of the row (an inset shadow doesn't move the content) */
+.project-row[data-critical='true'] {
+  box-shadow: inset 3px 0 0 var(--signal-critical);
+}
+
+.critical-flag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+
+.critical-flag[data-alert='true'] {
+  color: var(--signal-critical);
+}
+
+.critical-dot {
+  width: 8px;
+  height: 8px;
+  background: var(--signal-critical);
+}
+
 /* Phones: fewer columns, smaller padding */
 @media (max-width: 760px) {
   .overview-band {
@@ -607,7 +634,7 @@ a.project-row .col-created {
   }
 
   .project-row {
-    grid-template-columns: 32px minmax(0, 1fr) 40px;
+    grid-template-columns: 32px minmax(0, 1fr) auto 32px;
     padding: 0 16px;
   }
 
