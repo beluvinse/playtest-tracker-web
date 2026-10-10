@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
+import { BugList } from '../components/BugList'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { formatDate } from '../utils/format'
 
@@ -41,6 +42,9 @@ export function ProjectPage() {
         </span>
         <span>Created {formatDate(project.createdAt)}</span>
       </p>
+
+      <h3 className="section-title">Bugs</h3>
+      <BugList projectId={project.id} />
     </section>
   )
 }
