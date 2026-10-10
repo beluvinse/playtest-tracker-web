@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { createProject, projectKeys } from '../api/projects'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { FieldErrors } from '../components/FieldErrors'
 import { bugCode } from '../utils/projectCode'
 
 // Same limits as ProjectRequestDto in the API. The browser checks them first (instant feedback);
@@ -164,16 +165,5 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
         </p>
       </aside>
     </div>
-  )
-}
-
-function FieldErrors({ messages }: { messages: string[] | undefined }) {
-  if (!messages?.length) return null
-  return (
-    <ul className="field-errors" role="alert">
-      {messages.map((message) => (
-        <li key={message}>{message}</li>
-      ))}
-    </ul>
   )
 }

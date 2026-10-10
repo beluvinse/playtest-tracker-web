@@ -1235,7 +1235,8 @@ a.project-row .col-created {
   font-weight: 500;
 }
 
-.form-field input {
+.form-field input,
+.form-field textarea {
   height: 40px;
   padding: 0 12px;
   font: inherit;
@@ -1247,7 +1248,15 @@ a.project-row .col-created {
   border-radius: 0;
 }
 
-.form-field input[aria-invalid='true'] {
+.form-field textarea {
+  height: auto;
+  padding: 10px 12px;
+  line-height: 1.5;
+  resize: vertical;
+}
+
+.form-field input[aria-invalid='true'],
+.form-field textarea[aria-invalid='true'] {
   border-color: var(--signal-critical);
 }
 
@@ -1312,6 +1321,109 @@ a.project-row .col-created {
 .button-primary:focus-visible {
   outline-offset: -4px;
   outline-color: var(--accent-on);
+}
+
+/* A Link can look like the button too (it navigates, so it stays an <a>) */
+a.button-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+a.button-primary:hover {
+  color: var(--accent-on);
+}
+
+.button-small {
+  height: 30px;
+  padding: 0 12px;
+  font-size: 13px;
+}
+
+/* In the project header the button sits at the right end of the title row */
+.band-title-row .button-primary {
+  margin-left: auto;
+  align-self: center;
+}
+
+.form-cancel {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+/* ---- Report a bug ---- */
+
+.report-bug {
+  min-height: 100%;
+  padding: 24px 32px 48px;
+  border-bottom: 0;
+}
+
+.bug-form {
+  margin-top: 20px;
+  max-width: 680px;
+}
+
+.severity-picker {
+  margin: 8px 0 0;
+  padding: 0;
+  border: 0;
+}
+
+.form-field-legend {
+  margin-bottom: 6px;
+  padding: 0;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.severity-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+/* Each option is a box; the real radio is hidden but still focusable and clickable */
+.severity-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 12px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-input);
+  cursor: pointer;
+}
+
+.severity-option input {
+  position: absolute;
+  opacity: 0;
+  inset: 0;
+  margin: 0;
+  cursor: pointer;
+}
+
+.severity-option:hover {
+  background: var(--surface-active);
+}
+
+/* :has() styles the box depending on the radio inside it */
+.severity-option:has(input:checked) {
+  border-color: currentColor;
+  background: var(--surface-active);
+  box-shadow: inset 0 0 0 1px var(--text-primary);
+}
+
+.severity-option:has(input:focus-visible) {
+  outline: 2px solid var(--signal-open);
+  outline-offset: 2px;
+}
+
+@media (max-width: 760px) {
+  .report-bug {
+    padding: 20px 16px 32px;
+  }
 }
 
 /* ---- Side column: next steps ---- */

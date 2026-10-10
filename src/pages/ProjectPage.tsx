@@ -5,6 +5,7 @@ import { getProject, projectKeys } from '../api/projects'
 import type { ProjectDto } from '../api/types'
 import { BugList } from '../components/BugList'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { PixelIcon } from '../components/PixelIcon'
 import { openCritical, useProjectBugCount } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 import { projectCode } from '../utils/projectCode'
@@ -54,6 +55,10 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
       <div className="band-title-row">
         <h1 className="band-title">{project.name}</h1>
         <BugStats projectId={project.id} total={project.bugCount} />
+        <Link to={`/projects/${project.id}/bugs/new`} className="button-primary button-small">
+          <PixelIcon name="plus" size={10} />
+          Report bug
+        </Link>
       </div>
       {project.description && <p className="band-description">{project.description}</p>}
     </header>

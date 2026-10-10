@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router'
 import { AppShell } from './components/AppShell'
 import { BugPage } from './pages/BugPage'
+import { NewBugPage } from './pages/NewBugPage'
 import { NewProjectPage } from './pages/NewProjectPage'
 import { ProjectPage } from './pages/ProjectPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -13,6 +14,8 @@ function App() {
         {/* A fixed segment ("new") wins over a parameter (":projectId"), whatever the order */}
         <Route path="/projects/new" element={<NewProjectPage />} />
         <Route path="/projects/:projectId" element={<ProjectPage />} />
+        {/* Like POST /api/projects/{projectId}/bugs: a new bug is created inside its project */}
+        <Route path="/projects/:projectId/bugs/new" element={<NewBugPage />} />
         {/* Same shape as the API: a bug has its own address, outside its project */}
         <Route path="/bugs/:bugId" element={<BugPage />} />
       </Routes>

@@ -29,8 +29,14 @@ export function AppShell({ children }: { children: ReactNode }) {
   const projects = projectsQuery.data ?? []
   const currentProject = projects.find((project) => project.id === projectId)
 
-  // Last part of the breadcrumb inside a project: "bugs" or the bug's code
-  const crumbTail = currentBug && currentProject ? bugCode(currentProject.name, currentBug.id) : 'bugs'
+  // Last part of the breadcrumb inside a project: "bugs", "report bug" or the bug's code
+  const isNewBug = useMatch('/projects/:projectId/bugs/new') !== null
+  const crumbTail =
+    currentBug && currentProject
+      ? bugCode(currentProject.name, currentBug.id)
+      : isNewBug
+        ? 'report bug'
+        : 'bugs'
 
   // What the breadcrumb shows when no project is selected
   const isNewProject =
@@ -84,7 +90,8 @@ export function AppShell({ children }: { children: ReactNode }) {
               <>
                 <Link to="/">studio</Link>
                 <span className="breadcrumb-sep">/</span>
-                {currentBug ? (
+                {/* A link back to the project, except on the project page itself */}
+                {currentBug || isNewBug ? (
                   <Link to={`/projects/${currentProject.id}`}>{toSlug(currentProject.name)}</Link>
                 ) : (
                   <span>{toSlug(currentProject.name)}</span>
