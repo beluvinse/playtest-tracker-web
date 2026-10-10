@@ -33,7 +33,7 @@ export function AppShell({ children }: { children: ReactNode }) {
   const isNewBug = useMatch('/projects/:projectId/bugs/new') !== null
   const crumbTail =
     currentBug && currentProject
-      ? bugCode(currentProject.name, currentBug.id)
+      ? bugCode(currentProject.code, currentBug.id)
       : isNewBug
         ? 'report bug'
         : 'bugs'

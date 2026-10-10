@@ -6,7 +6,7 @@ import { ApiError } from '../api/client'
 import { createProject, projectKeys } from '../api/projects'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
-import { bugCode } from '../utils/projectCode'
+import { bugCode, suggestCode } from '../utils/projectCode'
 
 // Same limits as ProjectRequestDto in the API. The browser checks them first (instant feedback);
 // the API checks them again, because anyone can call it without this form.
@@ -39,6 +39,7 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
     event.preventDefault()
     mutation.mutate({
       name: name.trim(),
+      code: suggestCode(name), // for now the suggestion; the next commit adds a Code field
       description: description.trim() || null, // empty means "no description", not ""
     })
   }
@@ -103,7 +104,7 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
           </label>
           <FieldErrors messages={fieldErrors.name} />
           <p id="name-hint" className="form-hint">
-            bug ids will look like <span className="form-hint-code">{bugCode(previewName, 1)}</span>{' '}
+            bug ids will look like <span className="form-hint-code">{bugCode(suggestCode(previewName), 1)}</span>{' '}
             · the code comes from the name
           </p>
 

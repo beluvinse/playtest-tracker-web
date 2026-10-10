@@ -13,6 +13,7 @@ export const bugStatuses: BugStatus[] = ['Open', 'InProgress', 'Resolved', 'Clos
 export interface ProjectDto {
   id: number
   name: string
+  code: string // exactly 3 uppercase letters, unique: "PIN"
   description: string | null
   createdAt: string // ISO 8601 with offset, e.g. "2026-10-06T13:12:23+00:00"
   bugCount: number
@@ -39,6 +40,7 @@ export interface PagedResult<T> {
 
 export interface ProjectRequest {
   name: string
+  code: string // 3 letters; lowercase is fine, the API stores it in uppercase
   description?: string | null
 }
 

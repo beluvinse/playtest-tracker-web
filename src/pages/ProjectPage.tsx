@@ -11,7 +11,6 @@ import { PixelIcon } from '../components/PixelIcon'
 import { ProjectEditForm } from '../components/ProjectEditForm'
 import { openCritical, useProjectBugCount } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
-import { projectCode } from '../utils/projectCode'
 
 export function ProjectPage() {
   // The URL is /projects/:projectId, so the id arrives as text ("3") and is turned into a number
@@ -43,7 +42,7 @@ export function ProjectPage() {
   return (
     <BugList
       projectId={project.id}
-      projectName={project.name}
+      projectCode={project.code}
       header={<ProjectHeader project={project} />}
     />
   )
@@ -56,7 +55,7 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
   return (
     <header className="band-header">
       <div className="band-eyebrow">
-        {projectCode(project.name)} · created {formatDate(project.createdAt)}
+        {project.code} · created {formatDate(project.createdAt)}
       </div>
       {isEditing ? (
         <ProjectEditForm project={project} onDone={() => setIsEditing(false)} />

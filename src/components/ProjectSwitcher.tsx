@@ -2,7 +2,6 @@ import { useRef } from 'react'
 import { Link } from 'react-router'
 import type { ProjectDto } from '../api/types'
 import { useDismiss } from '../hooks/useDismiss'
-import { projectCode } from '../utils/projectCode'
 import { PixelIcon } from './PixelIcon'
 import { ProjectGlyph } from './ProjectGlyph'
 
@@ -35,7 +34,7 @@ export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
           <span className="switcher-name">{current ? current.name : 'All projects'}</span>
           <span className="switcher-meta">
             {current
-              ? `${projectCode(current.name)} · ${bugCountText(current.bugCount)}`
+              ? `${current.code} · ${bugCountText(current.bugCount)}`
               : `${projects.length} ${projects.length === 1 ? 'game' : 'games'}`}
           </span>
         </span>
@@ -66,7 +65,7 @@ export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
             <ProjectGlyph projectId={project.id} size={16} />
             <span className="switcher-text">
               <span>{project.name}</span>
-              <span className="switcher-meta">{projectCode(project.name)}</span>
+              <span className="switcher-meta">{project.code}</span>
             </span>
             <span className="switcher-meta">{project.bugCount}</span>
           </Link>

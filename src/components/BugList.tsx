@@ -13,11 +13,11 @@ import { Pagination } from './Pagination'
 
 interface BugListProps {
   projectId: number
-  projectName: string
+  projectCode: string
   header: ReactNode // drawn on the same gridded band as the filters
 }
 
-export function BugList({ projectId, projectName, header }: BugListProps) {
+export function BugList({ projectId, projectCode, header }: BugListProps) {
   const { filters, setFilter, setPage, clearFilters, hasFilters } = useBugFilters()
   const params = toBugListParams(filters)
 
@@ -71,7 +71,7 @@ export function BugList({ projectId, projectName, header }: BugListProps) {
 
     return (
       <>
-        <BugTable bugs={data.items} projectName={projectName} isUpdating={isPlaceholderData} />
+        <BugTable bugs={data.items} projectCode={projectCode} isUpdating={isPlaceholderData} />
         {/* page and pageSize come from the API's answer, the source of truth */}
         <Pagination
           page={data.page}
@@ -101,11 +101,11 @@ export function BugList({ projectId, projectName, header }: BugListProps) {
 
 interface BugTableProps {
   bugs: BugDto[]
-  projectName: string
+  projectCode: string
   isUpdating: boolean
 }
 
-function BugTable({ bugs, projectName, isUpdating }: BugTableProps) {
+function BugTable({ bugs, projectCode, isUpdating }: BugTableProps) {
   return (
     // On narrow screens the table scrolls sideways instead of stretching the page
     <div className="table-scroll" aria-busy={isUpdating}>
@@ -122,7 +122,7 @@ function BugTable({ bugs, projectName, isUpdating }: BugTableProps) {
         <tbody>
           {bugs.map((bug) => (
             <tr key={bug.id}>
-              <td className="bug-id">{bugCode(projectName, bug.id)}</td>
+              <td className="bug-id">{bugCode(projectCode, bug.id)}</td>
               <td className="bug-title">
                 {/* The link covers the whole row (CSS), but it's still one link per bug */}
                 <Link to={`/bugs/${bug.id}`}>{bug.title}</Link>

@@ -7,7 +7,6 @@ import { ProjectGlyph } from '../components/ProjectGlyph'
 import { openCritical, useAllBugCount, useProjectsBugCounts } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 import { NewProjectPage } from './NewProjectPage'
-import { projectCode } from '../utils/projectCode'
 
 export function ProjectsPage() {
   const { data: projects, isPending, error } = useQuery({
@@ -95,7 +94,7 @@ function StudioOverview({ projects }: { projects: ProjectDto[] }) {
                 >
                   <ProjectGlyph projectId={project.id} size={28} />
                   <span className="project-name">
-                    {project.name} <span className="row-code">{projectCode(project.name)}</span>
+                    {project.name} <span className="row-code">{project.code}</span>
                   </span>
                   <span className="col-description">{project.description}</span>
                   <CriticalFlag count={critical} />

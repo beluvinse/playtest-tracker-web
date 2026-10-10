@@ -57,7 +57,7 @@ export function BugPage() {
 function BugReport({ bug, project }: { bug: BugDto; project: ProjectDto }) {
   // Reading or editing. Local state: it only matters to this page, so no URL or cache needed.
   const [isEditing, setIsEditing] = useState(false)
-  const code = bugCode(project.name, bug.id)
+  const code = bugCode(project.code, bug.id)
 
   return (
     <article className="bug-report">

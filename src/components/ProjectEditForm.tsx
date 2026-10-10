@@ -31,7 +31,11 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    const changes = { name: name.trim(), description: description.trim() || null }
+    const changes = {
+      name: name.trim(),
+      code: project.code, // unchanged for now; the next commit makes it editable
+      description: description.trim() || null,
+    }
 
     // Nothing changed: skip the request
     if (changes.name === project.name && changes.description === project.description) {

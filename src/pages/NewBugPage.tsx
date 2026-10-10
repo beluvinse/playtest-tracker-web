@@ -9,7 +9,6 @@ import type { CreateBugRequest, ProjectDto, Severity } from '../api/types'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
 import { SeverityPicker } from '../components/SeverityPicker'
-import { projectCode } from '../utils/projectCode'
 
 // Same limits as BugRequestDto in the API
 const titleMinLength = 3
@@ -82,7 +81,7 @@ function BugForm({ project }: { project: ProjectDto }) {
   return (
     <section className="page-band report-bug">
       <div className="band-eyebrow">
-        {projectCode(project.name)} · new bug report
+        {project.code} · new bug report
       </div>
       <h1 className="band-title">Report a bug in {project.name}</h1>
 
