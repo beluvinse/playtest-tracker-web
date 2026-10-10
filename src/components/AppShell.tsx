@@ -1,20 +1,36 @@
 import { useQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
 import { Link, NavLink, useMatch } from 'react-router'
+import { bugKeys, getBug } from '../api/bugs'
 import { getProjects, projectKeys } from '../api/projects'
+import { bugCode } from '../utils/projectCode'
 import { PixelIcon } from './PixelIcon'
 import { ProjectSwitcher } from './ProjectSwitcher'
 
 // The frame around every page: sidebar on the left, top bar, and the page itself
 export function AppShell({ children }: { children: ReactNode }) {
-  // The shell sits outside <Routes>, so it can't use useParams; useMatch reads the URL directly
-  const projectMatch = useMatch('/projects/:projectId')
-  const projectId = Number(projectMatch?.params.projectId)
+  // The shell sits outside <Routes>, so it can't use useParams; useMatch reads the URL directly.
+  // "/*" also matches deeper pages of a project, like /projects/5/bugs/new.
+  const projectMatch = useMatch('/projects/:projectId/*')
+  const bugMatch = useMatch('/bugs/:bugId')
+  const bugId = Number(bugMatch?.params.bugId)
+
+  // On a bug's page the project comes from the bug. Same key as BugPage, so no extra request.
+  const bugQuery = useQuery({
+    queryKey: bugKeys.detail(bugId),
+    queryFn: () => getBug(bugId),
+    enabled: Number.isInteger(bugId) && bugId > 0,
+  })
+  const currentBug = bugMatch ? bugQuery.data : undefined
+  const projectId = currentBug ? currentBug.projectId : Number(projectMatch?.params.projectId)
 
   // Same key as the projects page, so both share one request and one cache entry
   const projectsQuery = useQuery({ queryKey: projectKeys.all, queryFn: getProjects })
   const projects = projectsQuery.data ?? []
   const currentProject = projects.find((project) => project.id === projectId)
+
+  // Last part of the breadcrumb inside a project: "bugs" or the bug's code
+  const crumbTail = currentBug && currentProject ? bugCode(currentProject.name, currentBug.id) : 'bugs'
 
   // What the breadcrumb shows when no project is selected
   const isNewProject =
@@ -68,9 +84,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <>
                 <Link to="/">studio</Link>
                 <span className="breadcrumb-sep">/</span>
-                <span>{toSlug(currentProject.name)}</span>
+                {currentBug ? (
+                  <Link to={`/projects/${currentProject.id}`}>{toSlug(currentProject.name)}</Link>
+                ) : (
+                  <span>{toSlug(currentProject.name)}</span>
+                )}
                 <span className="breadcrumb-sep">/</span>
-                <span aria-current="page">bugs</span>
+                <span aria-current="page">{crumbTail}</span>
               </>
             ) : (
               <>

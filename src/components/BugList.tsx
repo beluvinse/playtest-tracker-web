@@ -1,5 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import type { ReactNode } from 'react'
+import { Link } from 'react-router'
 import { bugKeys, getProjectBugs } from '../api/bugs'
 import type { BugDto } from '../api/types'
 import { toBugListParams, useBugFilters } from '../hooks/useBugFilters'
@@ -122,7 +123,10 @@ function BugTable({ bugs, projectName, isUpdating }: BugTableProps) {
           {bugs.map((bug) => (
             <tr key={bug.id}>
               <td className="bug-id">{bugCode(projectName, bug.id)}</td>
-              <td className="bug-title">{bug.title}</td>
+              <td className="bug-title">
+                {/* The link covers the whole row (CSS), but it's still one link per bug */}
+                <Link to={`/bugs/${bug.id}`}>{bug.title}</Link>
+              </td>
               <td>
                 <SeverityMeter severity={bug.severity} />
               </td>

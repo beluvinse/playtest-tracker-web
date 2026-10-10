@@ -933,6 +933,130 @@ a.project-row .col-created {
   font-weight: 500;
 }
 
+/* The row is the positioning box for the link's ::after below */
+.bug-table tbody tr {
+  position: relative;
+}
+
+.bug-title a {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+/* "Stretched link": an invisible layer that covers the whole row, so clicking anywhere
+   opens the bug, while screen readers still hear a single link (the title) */
+.bug-title a::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+}
+
+.bug-title a:focus-visible {
+  outline: none;
+}
+
+.bug-title a:focus-visible::after {
+  outline: 2px solid var(--signal-open);
+  outline-offset: -2px;
+}
+
+/* ==========================================================================
+   Bug report (detail page)
+   ========================================================================== */
+
+.bug-header {
+  padding: 24px 32px 20px;
+}
+
+.bug-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.bug-meta-code {
+  color: var(--accent-brand);
+  font-weight: 500;
+}
+
+.bug-heading {
+  margin: 10px 0 14px;
+  font-size: 28px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.015em;
+}
+
+.bug-facts {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px 22px;
+  font-size: 13px;
+}
+
+.bug-project {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.bug-project:hover {
+  color: var(--text-primary);
+}
+
+.bug-sections {
+  padding: 0 32px;
+}
+
+/* Each section: a small numbered label on the left, the content on the right */
+.bug-section {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  column-gap: 32px;
+  row-gap: 12px;
+  padding: 24px 0;
+  border-bottom: 1px dashed var(--line-strong);
+}
+
+.bug-section-title {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.bug-section-title span {
+  color: var(--text-faint);
+}
+
+.bug-description {
+  margin: 0;
+  max-width: 680px;
+  font-size: 15px;
+  white-space: pre-line; /* keep the line breaks typed in the report */
+}
+
+@media (max-width: 760px) {
+  .bug-header,
+  .bug-sections {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
+  .bug-section {
+    grid-template-columns: 1fr;
+  }
+}
+
 .bug-date {
   font-family: var(--font-mono);
   font-size: 12px;
