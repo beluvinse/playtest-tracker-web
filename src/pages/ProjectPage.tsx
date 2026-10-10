@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
@@ -6,6 +7,7 @@ import type { ProjectDto } from '../api/types'
 import { BugList } from '../components/BugList'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { PixelIcon } from '../components/PixelIcon'
+import { ProjectEditForm } from '../components/ProjectEditForm'
 import { openCritical, useProjectBugCount } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 import { projectCode } from '../utils/projectCode'
@@ -47,20 +49,37 @@ export function ProjectPage() {
 }
 
 function ProjectHeader({ project }: { project: ProjectDto }) {
+  // Reading or editing, like on the bug page
+  const [isEditing, setIsEditing] = useState(false)
+
   return (
     <header className="band-header">
       <div className="band-eyebrow">
         {projectCode(project.name)} · created {formatDate(project.createdAt)}
       </div>
-      <div className="band-title-row">
-        <h1 className="band-title">{project.name}</h1>
-        <BugStats projectId={project.id} total={project.bugCount} />
-        <Link to={`/projects/${project.id}/bugs/new`} className="button-primary button-small">
-          <PixelIcon name="plus" size={10} />
-          Report bug
-        </Link>
-      </div>
-      {project.description && <p className="band-description">{project.description}</p>}
+      {isEditing ? (
+        <ProjectEditForm project={project} onDone={() => setIsEditing(false)} />
+      ) : (
+        <>
+          <div className="band-title-row">
+            <h1 className="band-title">{project.name}</h1>
+            <BugStats projectId={project.id} total={project.bugCount} />
+            <div className="project-actions">
+              <button type="button" className="button-ghost" onClick={() => setIsEditing(true)}>
+                Edit
+              </button>
+              <Link
+                to={`/projects/${project.id}/bugs/new`}
+                className="button-primary button-small"
+              >
+                <PixelIcon name="plus" size={10} />
+                Report bug
+              </Link>
+            </div>
+          </div>
+          {project.description && <p className="band-description">{project.description}</p>}
+        </>
+      )}
     </header>
   )
 }

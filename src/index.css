@@ -1432,10 +1432,17 @@ a.button-primary:hover {
   font-size: 13px;
 }
 
-/* In the project header the button sits at the right end of the title row */
-.band-title-row .button-primary {
+/* In the project header, Edit and Report bug sit at the right end of the title row */
+.project-actions {
   margin-left: auto;
   align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.project-edit-form {
+  margin-top: 8px;
 }
 
 .form-cancel {
