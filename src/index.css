@@ -768,11 +768,14 @@ a.project-row .col-created {
   border-radius: 2px;
 }
 
+/* The token is one button: the select covers it (see .token select), so it's the
+   positioning box for it */
 .token {
+  position: relative;
   display: inline-flex;
   align-items: center;
   height: 26px;
-  padding: 0 4px 0 8px;
+  padding: 0 8px;
   border: 1px solid transparent;
   color: var(--text-muted);
   cursor: pointer;
@@ -782,37 +785,33 @@ a.project-row .col-created {
   background: var(--surface-active);
 }
 
+.token-value {
+  color: var(--text-secondary);
+}
+
 /* A token that is filtering something gets a box, so active filters stand out */
 .token[data-active='true'] {
   border-color: var(--line-strong);
   background: var(--surface-active);
+}
+
+.token[data-active='true'] .token-value {
   color: var(--text-primary);
 }
 
-.token[data-active='true'] .token-key {
-  color: var(--text-muted);
-}
-
+/* The real select: stretched over the whole token and invisible (opacity 0, but still
+   clickable and focusable). A click on "status:" or on "any" opens its list. */
 .token select {
-  appearance: none; /* removes the native arrow, so it reads as text */
-  field-sizing: content; /* as wide as the chosen option, not the longest one */
-  padding: 0 4px 0 0;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  opacity: 0;
   font: inherit;
-  color: var(--text-secondary);
-  background: transparent;
-  border: 0;
   cursor: pointer;
 }
 
-.token[data-active='true'] select {
-  color: var(--text-primary);
-}
-
-.token select:focus-visible {
-  outline: none; /* the whole token shows the focus ring instead */
-}
-
-.token:focus-within {
+/* Focus ring only for the keyboard (Tab), not after a mouse click */
+.token:has(select:focus-visible) {
   outline: 2px solid var(--signal-open);
   outline-offset: 1px;
 }
