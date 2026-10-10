@@ -6,6 +6,7 @@ import { ErrorMessage } from '../components/ErrorMessage'
 import { ProjectGlyph } from '../components/ProjectGlyph'
 import { openCritical, useAllBugCount, useProjectsBugCounts } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
+import { NewProjectPage } from './NewProjectPage'
 import { projectCode } from '../utils/projectCode'
 
 export function ProjectsPage() {
@@ -27,7 +28,7 @@ export function ProjectsPage() {
   }
 
   if (projects.length === 0) {
-    return <p className="page-body muted">No projects yet.</p>
+    return <NewProjectPage firstRun />
   }
 
   // An overview of one project is just that project, so go straight to it.

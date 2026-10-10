@@ -16,6 +16,11 @@ export function AppShell({ children }: { children: ReactNode }) {
   const projects = projectsQuery.data ?? []
   const currentProject = projects.find((project) => project.id === projectId)
 
+  // What the breadcrumb shows when no project is selected
+  const isNewProject =
+    useMatch('/projects/new') !== null || (projectsQuery.isSuccess && projects.length === 0)
+  const pageLabel = isNewProject ? 'new project' : projectMatch ? 'project' : 'all projects'
+
   return (
     <div className="shell">
       <aside className="sidebar">
@@ -25,7 +30,18 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="wordmark-tag">qa</span>
         </Link>
 
-        <ProjectSwitcher projects={projects} current={currentProject} />
+        {/* With no projects there is nothing to switch to: show a placeholder instead */}
+        {projectsQuery.isSuccess && projects.length === 0 ? (
+          <div className="switcher-empty">
+            <span className="switcher-empty-box" aria-hidden="true" />
+            <span className="switcher-text">
+              <span className="switcher-name">No project yet</span>
+              <span className="switcher-meta">create one to begin</span>
+            </span>
+          </div>
+        ) : (
+          <ProjectSwitcher projects={projects} current={currentProject} />
+        )}
 
         <nav className="sidebar-nav" aria-label="Main">
           {/* end: "/" is only active on the home page, not on every page that starts with "/" */}
@@ -59,7 +75,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             ) : (
               <>
                 studio<span className="breadcrumb-sep">/</span>
-                <span aria-current="page">{projectMatch ? 'project' : 'all projects'}</span>
+                <span aria-current="page">{pageLabel}</span>
               </>
             )}
           </nav>

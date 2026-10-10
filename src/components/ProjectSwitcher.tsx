@@ -86,6 +86,11 @@ export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
             <span className="switcher-meta">{project.bugCount}</span>
           </Link>
         ))}
+        <div className="switcher-divider" aria-hidden="true" />
+        <Link to="/projects/new" className="switcher-option switcher-new" onClick={closeMenu}>
+          <PixelIcon name="plus" size={12} />
+          <span>New project</span>
+        </Link>
       </div>
     </details>
   )

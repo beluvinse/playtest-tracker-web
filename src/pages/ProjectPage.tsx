@@ -68,7 +68,11 @@ function BugStats({ projectId, total }: { projectId: number; total: number }) {
   return (
     <span className="band-stats">
       <span className="stat-open">{open ?? '–'}</span> open ·{' '}
-      <span className="stat-critical">{critical ?? '–'}</span> critical · {total} total
+      {/* Red only when there is something to worry about */}
+      <span className="stat-critical" data-alert={critical !== undefined && critical > 0}>
+        {critical ?? '–'}
+      </span>{' '}
+      critical · {total} total
     </span>
   )
 }

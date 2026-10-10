@@ -296,6 +296,36 @@ h2 {
   color: var(--accent-brand);
 }
 
+.switcher-divider {
+  height: 1px;
+  margin: 6px 12px;
+  background: var(--line-rule);
+}
+
+.switcher-new {
+  display: flex;
+  gap: 10px;
+  color: var(--text-secondary);
+}
+
+/* Shown instead of the switcher when there are no projects */
+.switcher-empty {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  column-gap: 10px;
+  align-items: center;
+  margin: 12px 12px 6px;
+  padding: 8px 10px;
+  border: 1px dashed var(--line-strong);
+  color: var(--text-muted);
+}
+
+.switcher-empty-box {
+  width: 20px;
+  height: 20px;
+  border: 2px dashed var(--line-strong);
+}
+
 /* ---- Navigation ---- */
 
 .sidebar-nav {
@@ -691,6 +721,10 @@ a.project-row .col-created {
 }
 
 .stat-critical {
+  color: var(--text-primary);
+}
+
+.stat-critical[data-alert='true'] {
   color: var(--signal-critical);
 }
 
@@ -993,6 +1027,247 @@ a.project-row .col-created {
   color: var(--text-faint);
   opacity: 0.5;
   cursor: default;
+}
+
+/* ==========================================================================
+   New project / first run ("Press start")
+   ========================================================================== */
+
+.new-project {
+  display: flex;
+  flex-wrap: wrap;
+  min-height: 100%;
+}
+
+.new-project-main {
+  flex: 999 1 520px;
+  min-width: 0;
+  padding: 56px;
+  border-bottom: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+.press-start {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 24px;
+}
+
+.art-bug { fill: var(--accent-brand); }
+.art-ground { fill: var(--line-strong); }
+.art-dots { fill: var(--text-faint); }
+
+.press-start-title {
+  margin: 0;
+  font-family: var(--font-pixel);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+/* A text cursor blinking on and off, with no fade in between (steps) */
+.blink {
+  animation: blink 1s steps(1) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* People who ask their system for less motion get a still cursor */
+@media (prefers-reduced-motion: reduce) {
+  .blink {
+    animation: none;
+  }
+}
+
+.press-start-text {
+  margin: 8px 0 0;
+  max-width: 460px;
+  font-size: 16px;
+  color: var(--text-secondary);
+}
+
+/* ---- Form ---- */
+
+.project-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 560px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.form-field input {
+  height: 40px;
+  padding: 0 12px;
+  font: inherit;
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--text-primary);
+  background: var(--surface-input);
+  border: 1px solid var(--line-strong);
+  border-radius: 0;
+}
+
+.form-field input[aria-invalid='true'] {
+  border-color: var(--signal-critical);
+}
+
+.form-optional {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.form-hint {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.form-hint-code {
+  color: var(--accent-brand);
+}
+
+.field-errors {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 13px;
+  color: var(--signal-critical);
+}
+
+.form-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+/* Main action: brand color with stepped "pixel" corners (clip-path cuts 3px squares) */
+.button-primary {
+  height: 40px;
+  padding: 0 18px;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent-on);
+  background: var(--accent-brand);
+  border: 0;
+  cursor: pointer;
+  clip-path: polygon(
+    0 3px, 3px 3px, 3px 0, calc(100% - 3px) 0, calc(100% - 3px) 3px, 100% 3px,
+    100% calc(100% - 3px), calc(100% - 3px) calc(100% - 3px), calc(100% - 3px) 100%,
+    3px 100%, 3px calc(100% - 3px), 0 calc(100% - 3px)
+  );
+}
+
+.button-primary:hover:not(:disabled) {
+  filter: brightness(1.1);
+}
+
+.button-primary:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* clip-path would cut off the outline, so the focus ring goes inside */
+.button-primary:focus-visible {
+  outline-offset: -4px;
+  outline-color: var(--accent-on);
+}
+
+/* ---- Side column: next steps ---- */
+
+.new-project-steps {
+  flex: 1 0 280px;
+  max-width: 380px;
+  padding: 56px 32px 48px;
+  background: var(--surface-band);
+  border-left: 1px solid var(--line-rule);
+}
+
+.new-project-steps ol {
+  margin: 18px 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+
+.new-project-steps li {
+  display: grid;
+  grid-template-columns: 34px 1fr;
+  column-gap: 12px;
+}
+
+.new-project-steps strong {
+  display: block;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.new-project-steps li span span {
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.step-number {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.new-project-steps li[data-current='true'] .step-number {
+  border-color: var(--accent-brand);
+  color: var(--accent-brand);
+}
+
+.new-project-steps li[data-current='true'] strong {
+  color: var(--text-primary);
+}
+
+.new-project-steps .scanline {
+  margin: 28px 0 16px;
+}
+
+.steps-note {
+  margin: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+@media (max-width: 760px) {
+  .new-project-main {
+    padding: 32px 16px;
+  }
+
+  .new-project-steps {
+    max-width: none;
+    padding: 32px 16px;
+    border-left: 0;
+    border-top: 1px solid var(--line-rule);
+  }
 }
 
 .error-message {

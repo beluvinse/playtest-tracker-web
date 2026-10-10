@@ -1,0 +1,179 @@
+import { useMutation, useQueryClient } from '@tanstack/react-query'
+import { useState } from 'react'
+import type { FormEvent } from 'react'
+import { useNavigate } from 'react-router'
+import { ApiError } from '../api/client'
+import { createProject, projectKeys } from '../api/projects'
+import { ErrorMessage } from '../components/ErrorMessage'
+import { bugCode } from '../utils/projectCode'
+
+// Same limits as ProjectRequestDto in the API. The browser checks them first (instant feedback);
+// the API checks them again, because anyone can call it without this form.
+const nameMinLength = 2
+const nameMaxLength = 100
+const descriptionMaxLength = 1000
+
+interface NewProjectPageProps {
+  firstRun?: boolean // no projects yet: show the "Press start" welcome
+}
+
+export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const queryClient = useQueryClient()
+  const navigate = useNavigate()
+
+  // useQuery reads data; useMutation changes it (POST, PUT, PATCH, DELETE).
+  // It gives us isPending and error for the request, like useQuery does.
+  const mutation = useMutation({
+    mutationFn: createProject,
+    onSuccess: (project) => {
+      // The cached project list is now out of date: mark it stale so it refetches
+      queryClient.invalidateQueries({ queryKey: projectKeys.all })
+      navigate(`/projects/${project.id}`)
+    },
+  })
+
+  function handleSubmit(event: FormEvent) {
+    event.preventDefault()
+    mutation.mutate({
+      name: name.trim(),
+      description: description.trim() || null, // empty means "no description", not ""
+    })
+  }
+
+  // Errors the API attached to a field (400 validation) go under that field;
+  // anything else (API down, 500…) goes in a box above the button
+  const apiError = mutation.error
+  const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
+  const hasFieldErrors = Object.keys(fieldErrors).length > 0
+
+  const previewName = name.trim() || 'Pink in the Night'
+
+  return (
+    <div className="new-project">
+      <section className="new-project-main page-band">
+        <div className="press-start">
+          <svg
+            className="press-start-art"
+            width="112"
+            height="112"
+            viewBox="0 0 16 16"
+            shapeRendering="crispEdges"
+            aria-hidden="true"
+          >
+            <path
+              className="art-bug"
+              d="M6 2h1v1h-1zM9 2h1v1h-1zM7 3h2v1h-2zM6 4h4v1h-4zM5 5h1v1h-1zM7 5h2v1h-2zM10 5h1v1h-1zM4 6h8v1h-8zM4 7h1v1h-1zM6 7h4v1h-4zM11 7h1v1h-1zM4 8h1v1h-1zM6 8h1v1h-1zM9 8h1v1h-1zM11 8h1v1h-1zM5 9h2v1h-2zM9 9h2v1h-2z"
+            />
+            <path className="art-ground" d="M0 12h16v1h-16z" />
+            <path className="art-dots" d="M1 14h2v1h-2zM5 14h2v1h-2zM9 14h2v1h-2zM13 14h2v1h-2z" />
+          </svg>
+          <div>
+            <h1 className="press-start-title">
+              {firstRun ? 'Press start' : 'New project'}
+              <span className="blink" aria-hidden="true">
+                _
+              </span>
+            </h1>
+            <p className="press-start-text">
+              {firstRun
+                ? "Every bug lives inside a project. Make one for the game you're testing."
+                : 'One project per game. Its bugs, filters and counts stay separate from the rest.'}
+            </p>
+          </div>
+        </div>
+
+        <form className="project-form" onSubmit={handleSubmit}>
+          <label className="form-field">
+            Game name
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              minLength={nameMinLength}
+              maxLength={nameMaxLength}
+              placeholder="Pink in the Night"
+              aria-invalid={Boolean(fieldErrors.name)}
+              aria-describedby="name-hint"
+              autoFocus
+            />
+          </label>
+          <FieldErrors messages={fieldErrors.name} />
+          <p id="name-hint" className="form-hint">
+            bug ids will look like <span className="form-hint-code">{bugCode(previewName, 1)}</span>{' '}
+            · the code comes from the name
+          </p>
+
+          <label className="form-field">
+            <span>
+              One-line description <span className="form-optional">optional</span>
+            </span>
+            <input
+              type="text"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={descriptionMaxLength}
+              placeholder="Seated VR experience"
+              aria-invalid={Boolean(fieldErrors.description)}
+            />
+          </label>
+          <FieldErrors messages={fieldErrors.description} />
+
+          {apiError && !hasFieldErrors && <ErrorMessage error={apiError} />}
+
+          <div className="form-actions">
+            <button type="submit" className="button-primary" disabled={mutation.isPending}>
+              {mutation.isPending ? 'Creating…' : 'Create project'}
+            </button>
+            <span className="form-hint">enter ↵</span>
+          </div>
+        </form>
+      </section>
+
+      <aside className="new-project-steps" aria-label="What happens next">
+        <div className="eyebrow">Setup · 0 of 3</div>
+        <ol>
+          <li data-current="true">
+            <span className="step-number">01</span>
+            <span>
+              <strong>Create the project</strong>
+              <span>A name and a short description. You're here.</span>
+            </span>
+          </li>
+          <li>
+            <span className="step-number">02</span>
+            <span>
+              <strong>Log the bugs</strong>
+              <span>Each one gets an id, a severity and a status.</span>
+            </span>
+          </li>
+          <li>
+            <span className="step-number">03</span>
+            <span>
+              <strong>Triage</strong>
+              <span>Filter by status and severity to see what blocks the next build.</span>
+            </span>
+          </li>
+        </ol>
+        <div className="scanline" aria-hidden="true" />
+        <p className="steps-note">
+          Working on several games? Each one gets its own project; an all-projects overview
+          appears once you have two.
+        </p>
+      </aside>
+    </div>
+  )
+}
+
+function FieldErrors({ messages }: { messages: string[] | undefined }) {
+  if (!messages?.length) return null
+  return (
+    <ul className="field-errors" role="alert">
+      {messages.map((message) => (
+        <li key={message}>{message}</li>
+      ))}
+    </ul>
+  )
+}
