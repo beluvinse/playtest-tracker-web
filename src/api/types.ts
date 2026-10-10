@@ -72,6 +72,31 @@ export type BugListParams = {
   pageSize?: number
 }
 
+// ---- Authentication ----
+
+// Who a person is, as the API tells it (never anything private)
+export interface UserDto {
+  id: string
+  email: string
+  displayName: string
+}
+
+// The answer to a successful register or login
+export interface AuthResponse {
+  token: string // sent back on every request: "Authorization: Bearer <token>"
+  expiresAt: string // ISO 8601; after this the token stops working
+  user: UserDto
+}
+
+export interface LoginRequest {
+  email: string
+  password: string
+}
+
+export interface RegisterRequest extends LoginRequest {
+  displayName: string
+}
+
 // ---- Errors ----
 
 // The error format every 4xx response from the API uses (RFC 9457 "problem details")

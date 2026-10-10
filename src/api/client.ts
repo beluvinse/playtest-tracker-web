@@ -1,6 +1,15 @@
+import { clearToken, getToken } from '../auth/tokenStorage'
 import type { ProblemDetails } from './types'
 
 const apiUrl = import.meta.env.VITE_API_URL
+
+// Called when the API stops accepting our token (it expired, or the account is gone).
+// The auth provider sets it, so this file doesn't need to know about React.
+let onUnauthorized: (() => void) | null = null
+
+export function setUnauthorizedHandler(handler: (() => void) | null): void {
+  onUnauthorized = handler
+}
 
 // Thrown for any response that is not 2xx, so screens can show what went wrong
 export class ApiError extends Error {
@@ -38,11 +47,27 @@ interface RequestOptions {
 export async function apiRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
   const { method = 'GET', body, query } = options
 
+  const headers: Record<string, string> = {}
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+
+  // Every request carries the token when there is one: that is how the API knows who is asking
+  const token = getToken()
+  if (token) headers.Authorization = `Bearer ${token}`
+
   const response = await fetch(`${apiUrl}${path}${toQueryString(query)}`, {
     method,
-    headers: body === undefined ? undefined : { 'Content-Type': 'application/json' },
+    headers,
     body: body === undefined ? undefined : JSON.stringify(body),
   })
+
+  // A 401 for a request that carried a token means the token is no longer good, so the session
+  // is over. (A 401 without a token is just a failed login, and is the caller's to show.)
+  // The check against getToken() skips a late 401 that belongs to an OLD token, when the person
+  // has already logged in again with a new one.
+  if (response.status === 401 && token && getToken() === token) {
+    clearToken()
+    onUnauthorized?.()
+  }
 
   if (!response.ok) {
     throw new ApiError(response.status, await readProblem(response))
