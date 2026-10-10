@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router'
 import { ApiError } from '../api/client'
 import { createProject, projectKeys } from '../api/projects'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { CodeInput } from '../components/CodeInput'
 import { FieldErrors } from '../components/FieldErrors'
 import { bugCode, suggestCode } from '../utils/projectCode'
 
@@ -21,6 +22,10 @@ interface NewProjectPageProps {
 export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
+  // The code follows the name ("Pink…" → "PIN") until the person types in the Code field;
+  // from then on it's theirs, and changing the name doesn't overwrite it
+  const [typedCode, setTypedCode] = useState<string | null>(null)
+  const code = typedCode ?? (name.trim() ? suggestCode(name) : '')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
@@ -39,7 +44,7 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
     event.preventDefault()
     mutation.mutate({
       name: name.trim(),
-      code: suggestCode(name), // for now the suggestion; the next commit adds a Code field
+      code,
       description: description.trim() || null, // empty means "no description", not ""
     })
   }
@@ -49,8 +54,6 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
   const apiError = mutation.error
   const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
-
-  const previewName = name.trim() || 'Pink in the Night'
 
   return (
     <div className="new-project">
@@ -87,25 +90,30 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
         </div>
 
         <form className="project-form" onSubmit={handleSubmit}>
-          <label className="form-field">
-            Game name
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              minLength={nameMinLength}
-              maxLength={nameMaxLength}
-              placeholder="Pink in the Night"
-              aria-invalid={Boolean(fieldErrors.name)}
-              aria-describedby="name-hint"
-              autoFocus
-            />
-          </label>
+          {/* Name and code side by side, like in the design */}
+          <div className="form-row">
+            <label className="form-field">
+              Game name
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                minLength={nameMinLength}
+                maxLength={nameMaxLength}
+                placeholder="Pink in the Night"
+                aria-invalid={Boolean(fieldErrors.name)}
+                autoFocus
+              />
+            </label>
+            <CodeInput value={code} onChange={setTypedCode} invalid={Boolean(fieldErrors.code)} />
+          </div>
           <FieldErrors messages={fieldErrors.name} />
-          <p id="name-hint" className="form-hint">
-            bug ids will look like <span className="form-hint-code">{bugCode(suggestCode(previewName), 1)}</span>{' '}
-            · the code comes from the name
+          <FieldErrors messages={fieldErrors.code} />
+          <p id="code-hint" className="form-hint">
+            bug ids will look like{' '}
+            <span className="form-hint-code">{bugCode(code || 'PIN', 1)}</span> · 3 letters,
+            picked from the name, and you can change them
           </p>
 
           <label className="form-field">

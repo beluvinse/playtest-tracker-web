@@ -1699,3 +1699,16 @@ a.button-primary:hover {
 .button-primary:disabled[data-tone='danger'] {
   cursor: not-allowed;
 }
+
+/* Name and code side by side; the code box is just wide enough for 3 letters */
+.form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  gap: 12px;
+}
+
+.form-field-code input {
+  font-family: var(--font-mono);
+  letter-spacing: 0.08em;
+  color: var(--accent-brand);
+}

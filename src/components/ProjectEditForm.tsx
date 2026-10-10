@@ -4,6 +4,8 @@ import type { FormEvent } from 'react'
 import { ApiError } from '../api/client'
 import { projectKeys, updateProject } from '../api/projects'
 import type { ProjectDto, ProjectRequest } from '../api/types'
+import { bugCode } from '../utils/projectCode'
+import { CodeInput } from './CodeInput'
 import { ErrorMessage } from './ErrorMessage'
 import { FieldErrors } from './FieldErrors'
 
@@ -14,6 +16,7 @@ interface ProjectEditFormProps {
 
 export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
   const [name, setName] = useState(project.name)
+  const [code, setCode] = useState(project.code)
   const [description, setDescription] = useState(project.description ?? '')
   const queryClient = useQueryClient()
 
@@ -23,7 +26,7 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
     mutationFn: (changes: ProjectRequest) => updateProject(project.id, changes),
     onSuccess: (updated) => {
       queryClient.setQueryData(projectKeys.detail(project.id), updated)
-      // The sidebar, the overview and the switcher show the name too
+      // The sidebar, the overview and the switcher show the name and code too
       queryClient.invalidateQueries({ queryKey: projectKeys.all })
       onDone()
     },
@@ -31,14 +34,14 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
-    const changes = {
-      name: name.trim(),
-      code: project.code, // unchanged for now; the next commit makes it editable
-      description: description.trim() || null,
-    }
+    const changes = { name: name.trim(), code, description: description.trim() || null }
 
     // Nothing changed: skip the request
-    if (changes.name === project.name && changes.description === project.description) {
+    if (
+      changes.name === project.name &&
+      changes.code === project.code &&
+      changes.description === project.description
+    ) {
       onDone()
       return
     }
@@ -52,20 +55,28 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
 
   return (
     <form className="project-form project-edit-form" onSubmit={handleSubmit}>
-      <label className="form-field">
-        Game name
-        <input
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          required
-          minLength={2}
-          maxLength={100}
-          aria-invalid={Boolean(fieldErrors.name)}
-          autoFocus
-        />
-      </label>
+      <div className="form-row">
+        <label className="form-field">
+          Game name
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            required
+            minLength={2}
+            maxLength={100}
+            aria-invalid={Boolean(fieldErrors.name)}
+            autoFocus
+          />
+        </label>
+        <CodeInput value={code} onChange={setCode} invalid={Boolean(fieldErrors.code)} />
+      </div>
       <FieldErrors messages={fieldErrors.name} />
+      <FieldErrors messages={fieldErrors.code} />
+      <p id="code-hint" className="form-hint">
+        bugs show as <span className="form-hint-code">{bugCode(code || '___', 1)}</span> · changing
+        the code renames every bug id in this project
+      </p>
 
       <label className="form-field">
         <span>
