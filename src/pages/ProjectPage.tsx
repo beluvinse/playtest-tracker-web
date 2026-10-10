@@ -5,6 +5,7 @@ import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
 import type { ProjectDto } from '../api/types'
 import { BugList } from '../components/BugList'
+import { DeleteProjectButton } from '../components/DeleteProjectButton'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { PixelIcon } from '../components/PixelIcon'
 import { ProjectEditForm } from '../components/ProjectEditForm'
@@ -68,6 +69,7 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
               <button type="button" className="button-ghost" onClick={() => setIsEditing(true)}>
                 Edit
               </button>
+              <DeleteProjectButton project={project} />
               <Link
                 to={`/projects/${project.id}/bugs/new`}
                 className="button-primary button-small"
