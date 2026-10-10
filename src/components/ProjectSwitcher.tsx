@@ -1,6 +1,7 @@
-import { useEffect, useRef } from 'react'
+import { useRef } from 'react'
 import { Link } from 'react-router'
 import type { ProjectDto } from '../api/types'
+import { useDismiss } from '../hooks/useDismiss'
 import { projectCode } from '../utils/projectCode'
 import { PixelIcon } from './PixelIcon'
 import { ProjectGlyph } from './ProjectGlyph'
@@ -11,27 +12,11 @@ interface ProjectSwitcherProps {
 }
 
 // The box at the top of the sidebar: shows the current project and opens a menu to switch.
-// <details> gives open/close and keyboard support for free; the effect below adds
-// "close on click outside" and "close on Escape", which <details> doesn't do by itself.
+// <details> gives open/close and keyboard support for free; useDismiss adds
+// "close on click outside" and "close on Escape".
 export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
-
-  useEffect(() => {
-    function close(event: MouseEvent | KeyboardEvent) {
-      const details = detailsRef.current
-      if (!details?.open) return
-      const clickedOutside = event instanceof MouseEvent && !details.contains(event.target as Node)
-      const pressedEscape = event instanceof KeyboardEvent && event.key === 'Escape'
-      if (clickedOutside || pressedEscape) details.open = false
-    }
-    document.addEventListener('click', close)
-    document.addEventListener('keydown', close)
-    // Remove the listeners when the component goes away, or they would pile up
-    return () => {
-      document.removeEventListener('click', close)
-      document.removeEventListener('keydown', close)
-    }
-  }, [])
+  useDismiss(detailsRef)
 
   // Picking an option navigates, so the menu should close too
   function closeMenu() {

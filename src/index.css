@@ -1010,6 +1010,98 @@ a.project-row .col-created {
   color: var(--text-primary);
 }
 
+/* ---- Status menu: the status itself is the button ---- */
+
+.status-menu-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-menu {
+  position: relative;
+}
+
+.status-menu-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  height: 30px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface-input);
+  cursor: pointer;
+  list-style: none; /* hides the default ▶ marker of <summary> */
+}
+
+.status-menu-button::-webkit-details-marker {
+  display: none;
+}
+
+.status-menu-button:hover,
+.status-menu[open] .status-menu-button {
+  background: var(--surface-active);
+}
+
+.status-menu-button[aria-disabled='true'] {
+  pointer-events: none; /* no second change while the first one is saving */
+  opacity: 0.7;
+}
+
+.status-chevron {
+  color: var(--text-muted);
+}
+
+.status-menu[open] .status-chevron {
+  transform: rotate(180deg);
+}
+
+.status-saving {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.status-menu-list {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 3;
+  width: 200px;
+  padding: 6px 0;
+  background: var(--surface-input);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.status-menu-heading {
+  padding: 4px 12px 6px;
+}
+
+.status-option {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  font: inherit;
+  color: var(--text-primary);
+  background: none;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+}
+
+.status-option:hover,
+.status-option[aria-pressed='true'] {
+  background: var(--surface-active);
+}
+
+.status-error {
+  flex-basis: 100%;
+}
+
 .bug-sections {
   padding: 0 32px;
 }

@@ -4,7 +4,8 @@ import { bugKeys, getBug } from '../api/bugs'
 import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
 import type { BugDto, ProjectDto } from '../api/types'
-import { SeverityMeter, StatusLabel } from '../components/BugBadges'
+import { SeverityMeter } from '../components/BugBadges'
+import { BugStatusControls } from '../components/BugStatusControls'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { ProjectGlyph } from '../components/ProjectGlyph'
 import { formatDateTime } from '../utils/format'
@@ -60,7 +61,7 @@ function BugReport({ bug, project }: { bug: BugDto; project: ProjectDto }) {
         </div>
         <h1 className="bug-heading">{bug.title}</h1>
         <div className="bug-facts">
-          <StatusLabel status={bug.status} />
+          <BugStatusControls bug={bug} />
           <SeverityMeter severity={bug.severity} />
           <Link to={`/projects/${project.id}`} className="bug-project">
             <ProjectGlyph projectId={project.id} size={12} />
