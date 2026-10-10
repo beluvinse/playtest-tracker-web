@@ -11,19 +11,23 @@ export function ProjectsPage() {
   })
 
   if (isPending) {
-    return <p className="muted">Loading projects…</p>
+    return <p className="page-body muted">Loading projects…</p>
   }
 
   if (error) {
-    return <ErrorMessage error={error} />
+    return (
+      <div className="page-body">
+        <ErrorMessage error={error} />
+      </div>
+    )
   }
 
   if (projects.length === 0) {
-    return <p className="muted">No projects yet.</p>
+    return <p className="page-body muted">No projects yet.</p>
   }
 
   return (
-    <section>
+    <section className="page-body">
       <h2>Projects</h2>
       <ul className="card-list">
         {projects.map((project) => (

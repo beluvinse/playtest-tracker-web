@@ -1,19 +1,25 @@
 import { useState } from 'react'
-import type { FormEvent } from 'react'
+import type { FormEvent, ReactNode } from 'react'
 import { bugStatuses, severities } from '../api/types'
 import { sortOptions } from '../hooks/useBugFilters'
 import type { BugFilters, FilterName, SortKey } from '../hooks/useBugFilters'
-import { statusLabels } from '../utils/format'
 
 interface BugFilterBarProps {
   filters: BugFilters
   onChange: (name: FilterName, value: string | undefined) => void
+  onClear: () => void
+  hasFilters: boolean
 }
 
-export function BugFilterBar({ filters, onChange }: BugFilterBarProps) {
+// A single line of "key:value" tokens, like a debug console: › search  status:open  severity:any
+export function BugFilterBar({ filters, onChange, onClear, hasFilters }: BugFilterBarProps) {
   return (
-    <div className="filter-bar">
-      {/* key: when the search in the URL changes from outside (Back button, "Clear filters"),
+    <div className="filter-row" role="search" aria-label="Bug filters">
+      <span className="filter-prompt" aria-hidden="true">
+        ›
+      </span>
+
+      {/* key: when the search in the URL changes from outside (Back button, "clear"),
           React creates a new box, so the text inside matches the URL again */}
       <SearchBox
         key={filters.search ?? ''}
@@ -21,42 +27,72 @@ export function BugFilterBar({ filters, onChange }: BugFilterBarProps) {
         onSearch={(text) => onChange('search', text)}
       />
 
-      <label className="field">
-        <span className="field-label">Status</span>
-        <select value={filters.status ?? ''} onChange={(e) => onChange('status', e.target.value)}>
-          <option value="">All</option>
-          {bugStatuses.map((status) => (
-            <option key={status} value={status}>
-              {statusLabels[status]}
-            </option>
-          ))}
-        </select>
-      </label>
+      <TokenSelect
+        name="status"
+        value={filters.status ?? ''}
+        onChange={(value) => onChange('status', value)}
+      >
+        <option value="">any</option>
+        {bugStatuses.map((status) => (
+          <option key={status} value={status}>
+            {toTokenText(status)}
+          </option>
+        ))}
+      </TokenSelect>
 
-      <label className="field">
-        <span className="field-label">Severity</span>
-        <select value={filters.severity ?? ''} onChange={(e) => onChange('severity', e.target.value)}>
-          <option value="">All</option>
-          {severities.map((severity) => (
-            <option key={severity} value={severity}>
-              {severity}
-            </option>
-          ))}
-        </select>
-      </label>
+      <TokenSelect
+        name="severity"
+        value={filters.severity ?? ''}
+        onChange={(value) => onChange('severity', value)}
+      >
+        <option value="">any</option>
+        {severities.map((severity) => (
+          <option key={severity} value={severity}>
+            {toTokenText(severity)}
+          </option>
+        ))}
+      </TokenSelect>
 
-      <label className="field">
-        <span className="field-label">Sort</span>
-        <select value={filters.sort} onChange={(e) => onChange('sort', e.target.value)}>
-          {(Object.keys(sortOptions) as SortKey[]).map((key) => (
-            <option key={key} value={key}>
-              {sortOptions[key].label}
-            </option>
-          ))}
-        </select>
-      </label>
+      <TokenSelect name="sort" value={filters.sort} onChange={(value) => onChange('sort', value)}>
+        {(Object.keys(sortOptions) as SortKey[]).map((key) => (
+          <option key={key} value={key}>
+            {sortOptions[key].label.toLowerCase()}
+          </option>
+        ))}
+      </TokenSelect>
+
+      {hasFilters && (
+        <button type="button" className="filter-clear" onClick={onClear}>
+          clear
+        </button>
+      )}
     </div>
   )
+}
+
+interface TokenSelectProps {
+  name: string
+  value: string
+  onChange: (value: string) => void
+  children: ReactNode
+}
+
+// A <select> dressed as a "name:value" token. It is highlighted while it filters something.
+function TokenSelect({ name, value, onChange, children }: TokenSelectProps) {
+  const isActive = name !== 'sort' && value !== ''
+  return (
+    <label className="token" data-active={isActive}>
+      <span className="token-key">{name}:</span>
+      <select value={value} onChange={(e) => onChange(e.target.value)}>
+        {children}
+      </select>
+    </label>
+  )
+}
+
+// "InProgress" → "in-progress", the style of the design's tokens
+function toTokenText(value: string) {
+  return value.replace(/([a-z])([A-Z])/g, '$1-$2').toLowerCase()
 }
 
 interface SearchBoxProps {
@@ -75,14 +111,11 @@ function SearchBox({ value, onSearch }: SearchBoxProps) {
   }
 
   return (
-    <form className="field field-search" role="search" onSubmit={handleSubmit}>
-      <label className="field-label" htmlFor="bug-search">
-        Search
-      </label>
+    <form className="filter-search" onSubmit={handleSubmit}>
       <input
-        id="bug-search"
         type="search"
-        placeholder="Title or description, then Enter"
+        aria-label="Search bugs by title or description"
+        placeholder="search title or description ⏎"
         value={text}
         onChange={(e) => setText(e.target.value)}
       />

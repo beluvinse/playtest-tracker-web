@@ -410,6 +410,11 @@ h2 {
 
 .page {
   flex: 1;
+  min-width: 0;
+}
+
+/* Padding for pages (or states) that don't have a full-width band */
+.page-body {
   padding: 24px;
 }
 
@@ -437,18 +442,21 @@ h2 {
     display: none;
   }
 
-  .page {
-    padding: 16px;
+  .page-body,
+  .page-band {
+    padding-left: 16px;
+    padding-right: 16px;
   }
 }
 
-.back-link {
-  display: inline-block;
-  margin-bottom: 8px;
-  font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-muted);
-  text-decoration: none;
+/* Hidden on screen but read by screen readers */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 /* ==========================================================================
@@ -507,51 +515,171 @@ h2 {
 }
 
 /* ==========================================================================
-   Bug list
+   Project page: header band, filter tokens, bug table
    ========================================================================== */
 
-.section-title {
-  margin: 32px 0 12px;
-  font-size: 16px;
-  font-weight: 600;
+/* Full-width header with a faint 8px pixel grid behind it */
+.page-band {
+  padding: 22px 24px 16px;
+  border-bottom: 1px solid var(--line-rule);
+  background-color: var(--surface-page);
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 8px 8px;
 }
 
-.filter-bar {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-bottom: 16px;
-}
-
-.field {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  margin: 0;
-}
-
-.field-search {
-  flex: 1 1 240px;
-}
-
-.field-label {
+.band-eyebrow {
   font-family: var(--font-mono);
-  font-size: 10px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
+  font-size: 12px;
   color: var(--text-muted);
 }
 
-.field input,
-.field select {
+.band-title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  column-gap: 14px;
+  margin-top: 4px;
+}
+
+.band-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.band-stats {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stat-open {
+  color: var(--text-primary);
+}
+
+.stat-critical {
+  color: var(--signal-critical);
+}
+
+.band-description {
+  margin: 4px 0 0;
+  max-width: 720px;
+  color: var(--text-secondary);
+}
+
+/* ---- Filter tokens: › search  status:any  severity:any  sort:newest ---- */
+
+.filter-row {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.filter-prompt {
+  margin-right: 4px;
+  color: var(--accent-brand);
+}
+
+.filter-search {
+  flex: 1 1 220px;
+  max-width: 320px;
+  margin-right: 4px;
+}
+
+.filter-search input {
+  width: 100%;
+  height: 26px;
+  padding: 0 8px;
   font: inherit;
-  font-size: 13px;
-  min-height: 32px;
   color: var(--text-primary);
   background: var(--surface-input);
   border: 1px solid var(--line-rule);
   border-radius: 2px;
-  padding: 0 10px;
+}
+
+.token {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  padding: 0 4px 0 8px;
+  border: 1px solid transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.token:hover {
+  background: var(--surface-active);
+}
+
+/* A token that is filtering something gets a box, so active filters stand out */
+.token[data-active='true'] {
+  border-color: var(--line-strong);
+  background: var(--surface-active);
+  color: var(--text-primary);
+}
+
+.token[data-active='true'] .token-key {
+  color: var(--text-muted);
+}
+
+.token select {
+  appearance: none; /* removes the native arrow, so it reads as text */
+  field-sizing: content; /* as wide as the chosen option, not the longest one */
+  padding: 0 4px 0 0;
+  font: inherit;
+  color: var(--text-secondary);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+
+.token[data-active='true'] select {
+  color: var(--text-primary);
+}
+
+.token select:focus-visible {
+  outline: none; /* the whole token shows the focus ring instead */
+}
+
+.token:focus-within {
+  outline: 2px solid var(--signal-open);
+  outline-offset: 1px;
+}
+
+/* Options open in a native list, which uses its own colors */
+.token option {
+  color: var(--text-primary);
+  background: var(--surface-input);
+}
+
+.filter-clear {
+  height: 26px;
+  margin-left: 4px;
+  padding: 0 8px;
+  font: inherit;
+  color: var(--text-faint);
+  background: none;
+  border: 0;
+  cursor: pointer;
+}
+
+.filter-clear:hover {
+  color: var(--text-primary);
+}
+
+/* ---- Messages instead of the table (loading, empty, error) ---- */
+
+.list-message {
+  margin: 0;
+  padding: 20px 24px;
+  color: var(--text-muted);
 }
 
 /* A button that looks like a link (it does an action, so it's a <button>, not an <a>) */
@@ -565,6 +693,8 @@ h2 {
   cursor: pointer;
 }
 
+/* ---- Table ---- */
+
 .table-scroll {
   overflow-x: auto;
   transition: opacity 0.15s;
@@ -577,11 +707,12 @@ h2 {
 
 .bug-table {
   width: 100%;
+  min-width: 640px;
   border-collapse: collapse;
-  font-size: 14px;
 }
 
 .bug-table th {
+  height: 32px;
   text-align: left;
   font-family: var(--font-mono);
   font-size: 10px;
@@ -594,16 +725,34 @@ h2 {
 
 .bug-table th,
 .bug-table td {
-  padding: 10px 12px 10px 0;
+  padding: 0 12px 0 0;
+}
+
+/* The page's side padding lives on the first and last cells, so row hover reaches the edges */
+.bug-table th:first-child,
+.bug-table td:first-child {
+  padding-left: 24px;
+}
+
+.bug-table th:last-child,
+.bug-table td:last-child {
+  padding-right: 24px;
+  text-align: right;
 }
 
 .bug-table td {
+  height: 40px;
   border-bottom: 1px solid var(--line-row);
 }
 
 .bug-table tbody tr:hover {
   background: var(--surface-active);
 }
+
+.col-id { width: 96px; }
+.col-severity { width: 96px; }
+.col-status { width: 124px; }
+.col-date { width: 110px; }
 
 .bug-id {
   font-family: var(--font-mono);
@@ -612,49 +761,96 @@ h2 {
   white-space: nowrap;
 }
 
-/* Colored tag: each severity or status sets --tag-color, and the tag uses it */
-.tag {
-  --tag-color: var(--text-muted);
-  color: var(--tag-color);
-  font-family: var(--font-mono);
-  font-size: 11px;
+.bug-table tr:hover .bug-id {
+  color: var(--accent-brand);
+}
+
+.bug-title {
   font-weight: 500;
+}
+
+.bug-date {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
-.tag[data-severity='Critical'] { --tag-color: var(--signal-critical); }
-.tag[data-severity='High'] { --tag-color: var(--signal-high); }
-.tag[data-severity='Medium'] { --tag-color: var(--signal-medium); }
-.tag[data-severity='Low'] { --tag-color: var(--text-muted); }
+/* ---- Severity meter and status label ---- */
 
-.tag[data-status='Open'] { --tag-color: var(--signal-open); }
-.tag[data-status='InProgress'] { --tag-color: var(--signal-progress); }
-.tag[data-status='Resolved'] { --tag-color: var(--signal-success); }
-.tag[data-status='Closed'] { --tag-color: var(--text-muted); }
+.severity {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.severity[data-severity='Critical'] { color: var(--signal-critical); }
+.severity[data-severity='High'] { color: var(--signal-high); }
+.severity[data-severity='Medium'] { color: var(--signal-medium); }
+
+.severity-bars {
+  display: inline-flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 10px;
+}
+
+.severity-bars > span {
+  width: 3px;
+  background: var(--line-empty);
+}
+
+.severity-bars > span[data-filled='true'] {
+  background: currentColor;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.status-label {
+  color: var(--text-secondary);
+}
+
+.status svg { color: var(--text-muted); }
+.status[data-status='Open'] svg { color: var(--signal-open); }
+.status[data-status='InProgress'] svg { color: var(--signal-progress); }
+.status[data-status='Resolved'] svg { color: var(--signal-success); }
+
+/* ---- Pagination ---- */
 
 .pagination {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  justify-content: space-between;
   gap: 12px;
-  margin-top: 16px;
+  padding: 14px 24px;
   font-family: var(--font-mono);
   font-size: 12px;
+  color: var(--text-muted);
 }
 
 .pagination-buttons {
+  margin-left: auto;
   display: flex;
-  align-items: center;
-  gap: 12px;
+  gap: 2px;
 }
 
 .pagination button {
+  width: 28px;
+  height: 28px;
   font: inherit;
   color: var(--text-primary);
-  background: none;
+  background: transparent;
   border: 1px solid var(--line-rule);
-  padding: 4px 10px;
   cursor: pointer;
 }
 
@@ -664,7 +860,8 @@ h2 {
 }
 
 .pagination button:disabled {
-  opacity: 0.4;
+  color: var(--text-faint);
+  opacity: 0.5;
   cursor: default;
 }
 

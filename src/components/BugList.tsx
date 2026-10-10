@@ -1,17 +1,22 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import { bugKeys, getProjectBugs } from '../api/bugs'
-import type { BugDto, BugStatus, Severity } from '../api/types'
+import type { BugDto } from '../api/types'
 import { toBugListParams, useBugFilters } from '../hooks/useBugFilters'
-import { formatDate, statusLabels } from '../utils/format'
+import { formatDate } from '../utils/format'
+import { bugCode } from '../utils/projectCode'
+import { SeverityMeter, StatusLabel } from './BugBadges'
 import { BugFilterBar } from './BugFilterBar'
 import { ErrorMessage } from './ErrorMessage'
 import { Pagination } from './Pagination'
 
 interface BugListProps {
   projectId: number
+  projectName: string
+  header: ReactNode // drawn on the same gridded band as the filters
 }
 
-export function BugList({ projectId }: BugListProps) {
+export function BugList({ projectId, projectName, header }: BugListProps) {
   const { filters, setFilter, setPage, clearFilters, hasFilters } = useBugFilters()
   const params = toBugListParams(filters)
 
@@ -25,18 +30,22 @@ export function BugList({ projectId }: BugListProps) {
 
   function renderResults() {
     if (isPending) {
-      return <p className="muted">Loading bugs…</p>
+      return <p className="list-message">Loading bugs…</p>
     }
 
     if (error) {
-      return <ErrorMessage error={error} />
+      return (
+        <div className="list-message">
+          <ErrorMessage error={error} />
+        </div>
+      )
     }
 
     if (data.items.length === 0) {
       // There are bugs, just not on this page (e.g. an old link to ?page=9)
       if (data.totalCount > 0) {
         return (
-          <p className="muted">
+          <p className="list-message">
             This page is empty.{' '}
             <button type="button" className="link-button" onClick={() => setPage(1)}>
               Go to the first page
@@ -47,7 +56,7 @@ export function BugList({ projectId }: BugListProps) {
 
       if (hasFilters) {
         return (
-          <p className="muted">
+          <p className="list-message">
             No bugs match these filters.{' '}
             <button type="button" className="link-button" onClick={clearFilters}>
               Clear filters
@@ -56,12 +65,12 @@ export function BugList({ projectId }: BugListProps) {
         )
       }
 
-      return <p className="muted">No bugs reported yet.</p>
+      return <p className="list-message">No bugs reported yet.</p>
     }
 
     return (
       <>
-        <BugTable bugs={data.items} isUpdating={isPlaceholderData} />
+        <BugTable bugs={data.items} projectName={projectName} isUpdating={isPlaceholderData} />
         {/* page and pageSize come from the API's answer, the source of truth */}
         <Pagination
           page={data.page}
@@ -75,7 +84,15 @@ export function BugList({ projectId }: BugListProps) {
 
   return (
     <>
-      <BugFilterBar filters={filters} onChange={setFilter} />
+      <div className="page-band">
+        {header}
+        <BugFilterBar
+          filters={filters}
+          onChange={setFilter}
+          onClear={clearFilters}
+          hasFilters={hasFilters}
+        />
+      </div>
       {renderResults()}
     </>
   )
@@ -83,56 +100,40 @@ export function BugList({ projectId }: BugListProps) {
 
 interface BugTableProps {
   bugs: BugDto[]
+  projectName: string
   isUpdating: boolean
 }
 
-function BugTable({ bugs, isUpdating }: BugTableProps) {
+function BugTable({ bugs, projectName, isUpdating }: BugTableProps) {
   return (
     // On narrow screens the table scrolls sideways instead of stretching the page
     <div className="table-scroll" aria-busy={isUpdating}>
       <table className="bug-table">
         <thead>
           <tr>
-            <th scope="col">ID</th>
+            <th scope="col" className="col-id">Id</th>
             <th scope="col">Title</th>
-            <th scope="col">Severity</th>
-            <th scope="col">Status</th>
-            <th scope="col">Reported</th>
+            <th scope="col" className="col-severity">Severity</th>
+            <th scope="col" className="col-status">Status</th>
+            <th scope="col" className="col-date">Reported</th>
           </tr>
         </thead>
         <tbody>
           {bugs.map((bug) => (
             <tr key={bug.id}>
-              <td className="bug-id">#{bug.id}</td>
-              <td>{bug.title}</td>
+              <td className="bug-id">{bugCode(projectName, bug.id)}</td>
+              <td className="bug-title">{bug.title}</td>
               <td>
-                <SeverityBadge severity={bug.severity} />
+                <SeverityMeter severity={bug.severity} />
               </td>
               <td>
-                <StatusBadge status={bug.status} />
+                <StatusLabel status={bug.status} />
               </td>
-              <td className="muted">{formatDate(bug.createdAt)}</td>
+              <td className="bug-date">{formatDate(bug.createdAt)}</td>
             </tr>
           ))}
         </tbody>
       </table>
     </div>
-  )
-}
-
-// The color comes from CSS, chosen by the data-severity / data-status attribute
-function SeverityBadge({ severity }: { severity: Severity }) {
-  return (
-    <span className="tag" data-severity={severity}>
-      {severity}
-    </span>
-  )
-}
-
-function StatusBadge({ status }: { status: BugStatus }) {
-  return (
-    <span className="tag" data-status={status}>
-      {statusLabels[status]}
-    </span>
   )
 }
