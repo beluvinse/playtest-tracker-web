@@ -58,6 +58,27 @@ h2 {
   font-weight: 700;
   font-size: 1.25rem;
   color: var(--color-accent);
+  text-decoration: none;
+}
+
+a {
+  color: var(--color-accent);
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  text-decoration: none;
+}
+
+.card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title a:hover {
+  color: var(--color-accent);
 }
 
 .card-list {

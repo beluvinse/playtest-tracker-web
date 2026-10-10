@@ -1,4 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
+import { Link } from 'react-router'
 import { getProjects, projectKeys } from '../api/projects'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { formatDate } from '../utils/format'
@@ -27,7 +28,9 @@ export function ProjectsPage() {
       <ul className="card-list">
         {projects.map((project) => (
           <li key={project.id} className="card">
-            <h3 className="card-title">{project.name}</h3>
+            <h3 className="card-title">
+              <Link to={`/projects/${project.id}`}>{project.name}</Link>
+            </h3>
             {project.description && <p className="card-text">{project.description}</p>}
             <p className="card-meta">
               <span className="badge">
