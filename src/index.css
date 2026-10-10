@@ -1,38 +1,91 @@
+/* ==========================================================================
+   Theme tokens (design B "QA tool"). Every screen uses these names; only the
+   values change between light and dark. Accents are darker in light mode so
+   text keeps at least 4.5:1 contrast.
+   ========================================================================== */
+
 :root {
-  --color-text: #1f2328;
-  --color-muted: #59636e;
-  --color-background: #ffffff;
-  --color-border: #d1d9e0;
-  --color-accent: #c2185b;
+  color-scheme: light dark; /* native controls (select, scrollbars) follow the theme */
 
-  /* Severity and status colors (same hues as the design's light theme) */
-  --color-critical: #d03a3a;
-  --color-high: #b8650a;
-  --color-medium: #9a7a00;
-  --color-low: #2f6fd6;
-  --color-resolved: #0e8a6e;
+  /* Surfaces */
+  --surface-page: #f6f6f3; /* main background */
+  --surface-chrome: #ecebe6; /* sidebar, status bar */
+  --surface-band: #efeee9; /* side columns */
+  --surface-input: #ffffff; /* inputs and search */
+  --surface-active: #e6e5df; /* hover, active nav, selected token */
 
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  /* Lines */
+  --line-rule: #dad9d2; /* section and table borders */
+  --line-row: #e7e6e0; /* row separators */
+  --line-strong: #c7c6be; /* scanline dividers, control borders */
+  --line-empty: #dad9d2; /* empty severity meter cells */
+  --grid-line: rgba(20, 25, 35, 0.05); /* pixel grid behind page headers */
+
+  /* Text */
+  --text-primary: #1c2129;
+  --text-secondary: #353c47;
+  --text-muted: #5f6775; /* labels, ids, metadata */
+  --text-faint: #757c88; /* hints */
+
+  /* Signals */
+  --accent-brand: #c2367f; /* primary action, active item */
+  --accent-on: #ffffff; /* text on top of accent-brand */
+  --signal-critical: #d03a3a;
+  --signal-high: #b8650a;
+  --signal-medium: #9a7a00;
+  --signal-open: #2f6fd6; /* open, focus ring */
+  --signal-progress: #7b4bc4;
+  --signal-success: #0e8a6e; /* resolved, API online */
+  --link: #2558b8;
+  --link-hover: #1a3f87;
+
+  /* Type */
+  --font-sans: 'IBM Plex Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Consolas, monospace;
+  --font-pixel: 'Silkscreen', monospace; /* only for the wordmark */
+
+  font-family: var(--font-sans);
+  font-size: 14px;
   line-height: 1.5;
-  color: var(--color-text);
-  background: var(--color-background);
+  color: var(--text-primary);
+  background: var(--surface-page);
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-text: #e6edf3;
-    --color-muted: #9198a1;
-    --color-background: #0d1117;
-    --color-border: #3d444d;
-    --color-accent: #f06292;
+    --surface-page: #0e1116;
+    --surface-chrome: #0a0d11;
+    --surface-band: #0b0e13;
+    --surface-input: #11151c;
+    --surface-active: #141922;
 
-    --color-critical: #ff6b6b;
-    --color-high: #f2a54a;
-    --color-medium: #e3c454;
-    --color-low: #6fa8ff;
-    --color-resolved: #52d1b2;
+    --line-rule: #1d232d;
+    --line-row: #161b23;
+    --line-strong: #2a3242;
+    --line-empty: #252c38;
+    --grid-line: rgba(255, 255, 255, 0.025);
+
+    --text-primary: #dde3ec;
+    --text-secondary: #c9d1dc;
+    --text-muted: #8e99ab;
+    --text-faint: #6f7a8c;
+
+    --accent-brand: #e58bc0;
+    --accent-on: #1a0f17;
+    --signal-critical: #ff6b6b;
+    --signal-high: #f2a54a;
+    --signal-medium: #e3c454;
+    --signal-open: #6fa8ff;
+    --signal-progress: #c39bef;
+    --signal-success: #52d1b2;
+    --link: #8db8ff;
+    --link-hover: #b8d2ff;
   }
 }
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
 
 *,
 *::before,
@@ -42,6 +95,31 @@
 
 body {
   margin: 0;
+  background: var(--surface-page);
+}
+
+a {
+  color: var(--link);
+}
+
+a:hover {
+  color: var(--link-hover);
+}
+
+:focus-visible {
+  outline: 2px solid var(--signal-open);
+  outline-offset: 2px;
+}
+
+::placeholder {
+  color: var(--text-faint);
+}
+
+h2 {
+  margin: 0 0 16px;
+  font-size: 22px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
 }
 
 .container {
@@ -50,49 +128,57 @@ body {
   padding: 24px 16px;
 }
 
-h2 {
-  margin: 0 0 16px;
+.muted {
+  color: var(--text-muted);
 }
 
-.muted {
-  color: var(--color-muted);
+.mono {
+  font-family: var(--font-mono);
 }
+
+/* Small uppercase mono label: column headers, field labels */
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   Header
+   ========================================================================== */
 
 .app-header {
-  border-bottom: 1px solid var(--color-border);
+  background: var(--surface-chrome);
+  border-bottom: 1px solid var(--line-rule);
 }
 
 .app-header .container {
-  padding-top: 16px;
-  padding-bottom: 16px;
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 
 .app-title {
-  font-weight: 700;
-  font-size: 1.25rem;
-  color: var(--color-accent);
+  font-family: var(--font-pixel);
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  color: var(--text-primary);
   text-decoration: none;
-}
-
-a {
-  color: var(--color-accent);
 }
 
 .back-link {
   display: inline-block;
   margin-bottom: 8px;
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
   text-decoration: none;
 }
 
-.card-title a {
-  color: inherit;
-  text-decoration: none;
-}
-
-.card-title a:hover {
-  color: var(--color-accent);
-}
+/* ==========================================================================
+   Project cards (replaced by the "All projects" table in a later commit)
+   ========================================================================== */
 
 .card-list {
   list-style: none;
@@ -104,19 +190,29 @@ a {
 }
 
 .card {
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
+  border: 1px solid var(--line-rule);
+  background: var(--surface-band);
   padding: 16px;
 }
 
 .card-title {
   margin: 0 0 4px;
-  font-size: 1.1rem;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.card-title a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-title a:hover {
+  color: var(--accent-brand);
 }
 
 .card-text {
   margin: 0 0 12px;
-  color: var(--color-muted);
+  color: var(--text-secondary);
 }
 
 .card-meta {
@@ -125,20 +221,24 @@ a {
   flex-wrap: wrap;
   align-items: center;
   gap: 12px;
-  font-size: 0.875rem;
-  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
 .badge {
-  border: 1px solid var(--color-accent);
-  color: var(--color-accent);
-  border-radius: 999px;
-  padding: 0 8px;
-  font-weight: 600;
+  color: var(--accent-brand);
+  font-weight: 500;
 }
+
+/* ==========================================================================
+   Bug list
+   ========================================================================== */
 
 .section-title {
   margin: 32px 0 12px;
+  font-size: 16px;
+  font-weight: 600;
 }
 
 .filter-bar {
@@ -160,34 +260,29 @@ a {
 }
 
 .field-label {
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-muted);
+  color: var(--text-muted);
 }
 
 .field input,
 .field select {
   font: inherit;
-  font-size: 0.9rem;
-  color: var(--color-text);
-  background: var(--color-background);
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
-  padding: 6px 8px;
-}
-
-.field input:focus-visible,
-.field select:focus-visible {
-  outline: 2px solid var(--color-accent);
-  outline-offset: 1px;
+  font-size: 13px;
+  min-height: 32px;
+  color: var(--text-primary);
+  background: var(--surface-input);
+  border: 1px solid var(--line-rule);
+  border-radius: 2px;
+  padding: 0 10px;
 }
 
 /* A button that looks like a link (it does an action, so it's a <button>, not an <a>) */
 .link-button {
   font: inherit;
-  color: var(--color-accent);
+  color: var(--link);
   background: none;
   border: none;
   padding: 0;
@@ -208,51 +303,59 @@ a {
 .bug-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: 14px;
 }
 
 .bug-table th {
   text-align: left;
-  font-size: 0.75rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--color-muted);
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--line-rule);
 }
 
 .bug-table th,
 .bug-table td {
   padding: 10px 12px 10px 0;
-  border-bottom: 1px solid var(--color-border);
+}
+
+.bug-table td {
+  border-bottom: 1px solid var(--line-row);
+}
+
+.bug-table tbody tr:hover {
+  background: var(--surface-active);
 }
 
 .bug-id {
-  font-family: ui-monospace, 'Cascadia Mono', Consolas, monospace;
-  color: var(--color-muted);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 
 /* Colored tag: each severity or status sets --tag-color, and the tag uses it */
 .tag {
-  --tag-color: var(--color-muted);
+  --tag-color: var(--text-muted);
   color: var(--tag-color);
-  border: 1px solid var(--tag-color);
-  border-radius: 4px;
-  padding: 0 6px;
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
   white-space: nowrap;
 }
 
-.tag[data-severity='Critical'] { --tag-color: var(--color-critical); }
-.tag[data-severity='High'] { --tag-color: var(--color-high); }
-.tag[data-severity='Medium'] { --tag-color: var(--color-medium); }
-.tag[data-severity='Low'] { --tag-color: var(--color-low); }
+.tag[data-severity='Critical'] { --tag-color: var(--signal-critical); }
+.tag[data-severity='High'] { --tag-color: var(--signal-high); }
+.tag[data-severity='Medium'] { --tag-color: var(--signal-medium); }
+.tag[data-severity='Low'] { --tag-color: var(--text-muted); }
 
-.tag[data-status='Open'] { --tag-color: var(--color-accent); }
-.tag[data-status='InProgress'] { --tag-color: var(--color-low); }
-.tag[data-status='Resolved'] { --tag-color: var(--color-resolved); }
-.tag[data-status='Closed'] { --tag-color: var(--color-muted); }
+.tag[data-status='Open'] { --tag-color: var(--signal-open); }
+.tag[data-status='InProgress'] { --tag-color: var(--signal-progress); }
+.tag[data-status='Resolved'] { --tag-color: var(--signal-success); }
+.tag[data-status='Closed'] { --tag-color: var(--text-muted); }
 
 .pagination {
   display: flex;
@@ -261,7 +364,8 @@ a {
   justify-content: space-between;
   gap: 12px;
   margin-top: 16px;
-  font-size: 0.875rem;
+  font-family: var(--font-mono);
+  font-size: 12px;
 }
 
 .pagination-buttons {
@@ -272,17 +376,16 @@ a {
 
 .pagination button {
   font: inherit;
-  color: var(--color-text);
+  color: var(--text-primary);
   background: none;
-  border: 1px solid var(--color-border);
-  border-radius: 6px;
+  border: 1px solid var(--line-rule);
   padding: 4px 10px;
   cursor: pointer;
 }
 
 .pagination button:hover:not(:disabled) {
-  border-color: var(--color-accent);
-  color: var(--color-accent);
+  border-color: var(--accent-brand);
+  color: var(--accent-brand);
 }
 
 .pagination button:disabled {
@@ -291,7 +394,7 @@ a {
 }
 
 .error-message {
-  border: 1px solid var(--color-accent);
-  border-radius: 8px;
+  border: 1px solid var(--signal-critical);
+  color: var(--text-primary);
   padding: 12px 16px;
 }
