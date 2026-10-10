@@ -5,44 +5,78 @@ import { toBugListParams, useBugFilters } from '../hooks/useBugFilters'
 import { formatDate, statusLabels } from '../utils/format'
 import { BugFilterBar } from './BugFilterBar'
 import { ErrorMessage } from './ErrorMessage'
+import { Pagination } from './Pagination'
 
 interface BugListProps {
   projectId: number
 }
 
 export function BugList({ projectId }: BugListProps) {
-  const { filters, setFilter, clearFilters, hasFilters } = useBugFilters()
+  const { filters, setFilter, setPage, clearFilters, hasFilters } = useBugFilters()
   const params = toBugListParams(filters)
 
   const { data, isPending, isPlaceholderData, error } = useQuery({
-    // The filters are part of the key, so each combination is cached separately
+    // The filters and page are part of the key, so each combination is cached separately
     queryKey: bugKeys.ofProject(projectId, params),
     queryFn: () => getProjectBugs(projectId, params),
-    // While a new filter loads, keep showing the previous results instead of "Loading…"
+    // While a new filter or page loads, keep showing the previous results instead of "Loading…"
     placeholderData: keepPreviousData,
   })
 
-  return (
-    <>
-      <BugFilterBar filters={filters} onChange={setFilter} />
-      {isPending ? (
-        <p className="muted">Loading bugs…</p>
-      ) : error ? (
-        <ErrorMessage error={error} />
-      ) : data.items.length === 0 ? (
-        hasFilters ? (
+  function renderResults() {
+    if (isPending) {
+      return <p className="muted">Loading bugs…</p>
+    }
+
+    if (error) {
+      return <ErrorMessage error={error} />
+    }
+
+    if (data.items.length === 0) {
+      // There are bugs, just not on this page (e.g. an old link to ?page=9)
+      if (data.totalCount > 0) {
+        return (
+          <p className="muted">
+            This page is empty.{' '}
+            <button type="button" className="link-button" onClick={() => setPage(1)}>
+              Go to the first page
+            </button>
+          </p>
+        )
+      }
+
+      if (hasFilters) {
+        return (
           <p className="muted">
             No bugs match these filters.{' '}
             <button type="button" className="link-button" onClick={clearFilters}>
               Clear filters
             </button>
           </p>
-        ) : (
-          <p className="muted">No bugs reported yet.</p>
         )
-      ) : (
+      }
+
+      return <p className="muted">No bugs reported yet.</p>
+    }
+
+    return (
+      <>
         <BugTable bugs={data.items} isUpdating={isPlaceholderData} />
-      )}
+        {/* page and pageSize come from the API's answer, the source of truth */}
+        <Pagination
+          page={data.page}
+          pageSize={data.pageSize}
+          totalCount={data.totalCount}
+          onPageChange={setPage}
+        />
+      </>
+    )
+  }
+
+  return (
+    <>
+      <BugFilterBar filters={filters} onChange={setFilter} />
+      {renderResults()}
     </>
   )
 }

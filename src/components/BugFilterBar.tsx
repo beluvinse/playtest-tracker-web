@@ -2,12 +2,12 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { bugStatuses, severities } from '../api/types'
 import { sortOptions } from '../hooks/useBugFilters'
-import type { BugFilters, SortKey } from '../hooks/useBugFilters'
+import type { BugFilters, FilterName, SortKey } from '../hooks/useBugFilters'
 import { statusLabels } from '../utils/format'
 
 interface BugFilterBarProps {
   filters: BugFilters
-  onChange: (name: keyof BugFilters, value: string | undefined) => void
+  onChange: (name: FilterName, value: string | undefined) => void
 }
 
 export function BugFilterBar({ filters, onChange }: BugFilterBarProps) {
