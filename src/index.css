@@ -122,12 +122,6 @@ h2 {
   letter-spacing: -0.01em;
 }
 
-.container {
-  max-width: 960px;
-  margin: 0 auto;
-  padding: 24px 16px;
-}
-
 .muted {
   color: var(--text-muted);
 }
@@ -145,26 +139,307 @@ h2 {
   color: var(--text-muted);
 }
 
+/* Dotted divider, like a scanline */
+.scanline {
+  height: 1px;
+  background: repeating-linear-gradient(90deg, var(--line-strong) 0 2px, transparent 2px 5px);
+}
+
 /* ==========================================================================
-   Header
+   App shell: sidebar + top bar + page
    ========================================================================== */
 
-.app-header {
+.shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  z-index: 2; /* the project menu opens over the page */
+  flex: 0 0 224px;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   background: var(--surface-chrome);
+  border-right: 1px solid var(--line-rule);
+}
+
+.wordmark {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 16px;
+  border-bottom: 1px solid var(--line-rule);
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.wordmark:hover {
+  color: var(--text-primary);
+}
+
+.wordmark-icon {
+  color: var(--accent-brand);
+}
+
+.wordmark-text {
+  font-family: var(--font-pixel);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+}
+
+.wordmark-tag {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+/* ---- Project switcher ---- */
+
+.switcher {
+  position: relative;
+  margin: 12px 12px 6px;
+}
+
+.switcher-current {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) 10px;
+  column-gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+  border: 1px solid var(--line-rule);
+  background: var(--surface-input);
+  cursor: pointer;
+  list-style: none; /* hides the default ▶ marker of <summary> */
+}
+
+.switcher-current::-webkit-details-marker {
+  display: none;
+}
+
+.switcher-current:hover,
+.switcher[open] .switcher-current {
+  border-color: var(--line-strong);
+  background: var(--surface-active);
+}
+
+.switcher-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.switcher-name {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.switcher-meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.switcher-grid,
+.switcher-chevron {
+  color: var(--text-muted);
+}
+
+.switcher[open] .switcher-chevron {
+  transform: rotate(180deg);
+}
+
+.switcher-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  width: min(300px, calc(100vw - 24px));
+  padding: 6px 0;
+  background: var(--surface-input);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.switcher-heading {
+  padding: 6px 12px 4px;
+}
+
+.switcher-menu .scanline {
+  margin: 6px 12px;
+}
+
+.switcher-option {
+  display: grid;
+  grid-template-columns: 20px minmax(0, 1fr) auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 7px 12px;
+  font-size: 13px;
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.switcher-option:hover,
+.switcher-option[aria-current='true'] {
+  color: var(--text-primary);
+  background: var(--surface-active);
+}
+
+.switcher-check {
+  color: var(--accent-brand);
+}
+
+/* ---- Navigation ---- */
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 32px;
+  padding: 0 16px;
+  font-size: 13px;
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.nav-item:hover {
+  color: var(--text-primary);
+  background: var(--surface-input);
+}
+
+/* NavLink adds aria-current="page" to the link of the page you're on */
+.nav-item[aria-current='page'] {
+  color: var(--text-primary);
+  background: var(--surface-active);
+  font-weight: 500;
+}
+
+.nav-item[aria-current='page'] svg {
+  color: var(--accent-brand);
+}
+
+.nav-count {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-brand);
+}
+
+/* ---- API status ---- */
+
+.api-status {
+  margin-top: auto;
+  padding: 10px 16px 12px;
+  border-top: 1px solid var(--line-rule);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.api-status > span:first-child {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.api-dot {
+  width: 6px;
+  height: 6px;
+  background: var(--text-faint);
+}
+
+.api-status[data-state='online'] .api-dot { background: var(--signal-success); }
+.api-status[data-state='offline'] .api-dot { background: var(--signal-critical); }
+
+/* ---- Top bar and page ---- */
+
+.shell-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.topbar {
+  display: flex;
+  align-items: center;
+  min-height: 48px;
+  padding: 6px 24px;
   border-bottom: 1px solid var(--line-rule);
 }
 
-.app-header .container {
-  padding-top: 12px;
-  padding-bottom: 12px;
+.breadcrumb {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
 }
 
-.app-title {
-  font-family: var(--font-pixel);
-  font-size: 14px;
-  letter-spacing: 0.04em;
-  color: var(--text-primary);
+.breadcrumb a {
+  color: var(--text-muted);
   text-decoration: none;
+}
+
+.breadcrumb a:hover {
+  color: var(--text-primary);
+}
+
+.breadcrumb [aria-current='page'] {
+  color: var(--text-primary);
+}
+
+.breadcrumb-sep {
+  margin: 0 6px;
+  color: var(--line-strong);
+}
+
+.page {
+  flex: 1;
+  padding: 24px;
+}
+
+/* ---- Phones: the sidebar becomes a block on top ---- */
+
+@media (max-width: 760px) {
+  .shell {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    position: static;
+    height: auto;
+    flex-basis: auto;
+    border-right: 0;
+    border-bottom: 1px solid var(--line-rule);
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    margin: 0 0 6px;
+  }
+
+  .api-status {
+    display: none;
+  }
+
+  .page {
+    padding: 16px;
+  }
 }
 
 .back-link {
