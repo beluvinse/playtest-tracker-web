@@ -27,6 +27,11 @@ export function createBug(projectId: number, bug: CreateBugRequest) {
   return apiRequest<BugDto>(`/api/projects/${projectId}/bugs`, { method: 'POST', body: bug })
 }
 
+// Empties the project: every one of its bugs is deleted in one request. The project stays.
+export function deleteProjectBugs(projectId: number) {
+  return apiRequest<void>(`/api/projects/${projectId}/bugs`, { method: 'DELETE' })
+}
+
 // ---- Across every project ----
 
 export function searchBugs(params: BugListParams & { projectId?: number } = {}) {

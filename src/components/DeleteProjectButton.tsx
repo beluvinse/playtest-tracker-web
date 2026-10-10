@@ -1,34 +1,45 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { useRef } from 'react'
+import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
-import { bugKeys } from '../api/bugs'
+import { bugKeys, deleteProjectBugs } from '../api/bugs'
 import { ApiError } from '../api/client'
 import { deleteProject, projectKeys } from '../api/projects'
 import type { ProjectDto } from '../api/types'
 import { ErrorMessage } from './ErrorMessage'
 
-// "Delete" opens a confirmation dialog. The API refuses to delete a project that still
-// has bugs (409 Conflict), so in that case the dialog explains why instead of offering it.
+// "Delete" opens a confirmation dialog. An empty project is deleted after a simple confirm.
+// A project with bugs can be deleted together with them, but only after typing its name:
+// it deletes a lot at once and can't be undone, so one stray click must not be enough.
 export function DeleteProjectButton({ project }: { project: ProjectDto }) {
   const dialogRef = useRef<HTMLDialogElement>(null)
+  const [typedName, setTypedName] = useState('')
   const queryClient = useQueryClient()
   const navigate = useNavigate()
-  const hasBugs = project.bugCount > 0
+  const bugCount = project.bugCount
+  const hasBugs = bugCount > 0
+  const bugsText = `${bugCount} ${bugCount === 1 ? 'bug' : 'bugs'}`
 
   const mutation = useMutation({
-    mutationFn: () => deleteProject(project.id),
+    // Two requests when there are bugs: first empty the project, then delete it
+    // (the API refuses to delete a project that still has bugs)
+    mutationFn: async (withBugs: boolean) => {
+      if (withBugs) await deleteProjectBugs(project.id)
+      await deleteProject(project.id)
+    },
     onSuccess: () => {
       // Leave first (this page would refetch the project and get a 404), then clean the cache
       navigate('/', { replace: true })
       queryClient.removeQueries({ queryKey: projectKeys.detail(project.id) })
       queryClient.invalidateQueries({ queryKey: projectKeys.all })
-      queryClient.invalidateQueries({ queryKey: bugKeys.all }) // studio-wide counts
+      queryClient.invalidateQueries({ queryKey: bugKeys.all }) // lists and counts
     },
-    onError: (error) => {
-      // 409: the project has bugs we didn't know about (someone reported one meanwhile),
-      // so our copy is out of date. Refetching updates bugCount, and the dialog switches
-      // to the "still has bugs" message by itself.
-      if (error instanceof ApiError && error.status === 409) {
+    onError: (error, withBugs) => {
+      // Our copy may be out of date. Two ways that happens:
+      // - 409: someone reported a bug that we didn't know about
+      // - the bugs were deleted but deleting the project failed (a new bug slipped in
+      //   between the two requests): the bugs are gone, the project is still here
+      // Refetching shows the real state, and the dialog updates by itself.
+      if (withBugs || (error instanceof ApiError && error.status === 409)) {
         queryClient.invalidateQueries({ queryKey: projectKeys.all })
         queryClient.invalidateQueries({ queryKey: bugKeys.all })
       }
@@ -37,8 +48,15 @@ export function DeleteProjectButton({ project }: { project: ProjectDto }) {
 
   function close() {
     dialogRef.current?.close()
-    mutation.reset() // forget an old error, so reopening starts clean
   }
+
+  // Runs on every close (button, Escape): the next time, the dialog starts clean
+  function handleClose() {
+    mutation.reset()
+    setTypedName('')
+  }
+
+  const nameMatches = typedName.trim() === project.name
 
   return (
     <>
@@ -50,25 +68,49 @@ export function DeleteProjectButton({ project }: { project: ProjectDto }) {
         Delete
       </button>
 
-      {/* onClose also runs when Escape closes the dialog */}
       <dialog
         ref={dialogRef}
         className="confirm-dialog"
         aria-labelledby="delete-project-title"
-        onClose={() => mutation.reset()}
+        onClose={handleClose}
       >
         {hasBugs ? (
           <>
             <h2 id="delete-project-title" className="confirm-title">
-              {project.name} still has bugs
+              Delete {project.name} and its {bugsText}?
             </h2>
             <p className="confirm-text">
-              A project can only be deleted when it's empty. Delete its {project.bugCount}{' '}
-              {project.bugCount === 1 ? 'bug' : 'bugs'} first.
+              This deletes the project <strong>and every one of its {bugsText}</strong>. It can't
+              be undone.
             </p>
+            <label className="form-field confirm-field">
+              <span>
+                Type <strong className="confirm-name">{project.name}</strong> to confirm
+              </span>
+              <input
+                type="text"
+                value={typedName}
+                onChange={(e) => setTypedName(e.target.value)}
+                autoComplete="off"
+                spellCheck={false}
+                // Focus starts here, ready to type. Enter does nothing in this field,
+                // so a reflex Enter can't delete anything.
+                autoFocus
+              />
+            </label>
+            {mutation.error && <ErrorMessage error={mutation.error} />}
             <div className="form-actions">
-              <button type="button" className="button-ghost" autoFocus onClick={close}>
-                OK
+              <button type="button" className="button-ghost" onClick={close}>
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="button-primary button-small"
+                data-tone="danger"
+                disabled={!nameMatches || mutation.isPending}
+                onClick={() => mutation.mutate(true)}
+              >
+                {mutation.isPending ? 'Deleting…' : `Delete project and ${bugsText}`}
               </button>
             </div>
           </>
@@ -90,7 +132,7 @@ export function DeleteProjectButton({ project }: { project: ProjectDto }) {
                 className="button-primary button-small"
                 data-tone="danger"
                 disabled={mutation.isPending}
-                onClick={() => mutation.mutate()}
+                onClick={() => mutation.mutate(false)}
               >
                 {mutation.isPending ? 'Deleting…' : 'Delete project'}
               </button>

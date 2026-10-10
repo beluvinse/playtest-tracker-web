@@ -1684,3 +1684,18 @@ a.button-primary:hover {
 .confirm-dialog .form-actions {
   justify-content: flex-end;
 }
+
+/* "Type the project name to confirm" field in the delete dialog */
+.confirm-field {
+  margin: 4px 0 8px;
+}
+
+.confirm-name {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--signal-critical);
+}
+
+.button-primary:disabled[data-tone='danger'] {
+  cursor: not-allowed;
+}
