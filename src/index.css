@@ -460,58 +460,161 @@ h2 {
 }
 
 /* ==========================================================================
-   Project cards (replaced by the "All projects" table in a later commit)
+   All projects (studio overview, 2+ projects)
    ========================================================================== */
 
-.card-list {
+.overview-band {
+  padding: 26px 32px 0;
+}
+
+.overview-headline {
+  margin: 10px 0 22px;
+  max-width: 820px;
+  font-size: 30px;
+  font-weight: 500;
+  line-height: 1.25;
+  letter-spacing: -0.015em;
+}
+
+.headline-alert {
+  color: var(--signal-critical);
+}
+
+.headline-calm {
+  color: var(--text-muted);
+}
+
+/* The stats row reaches both edges of the band, with dividers between cells */
+.overview-stats {
+  margin: 0 -32px;
+  display: flex;
+  flex-wrap: wrap;
+  border-top: 1px solid var(--line-rule);
+}
+
+.stat {
+  flex: 1 1 140px;
+  padding: 14px 32px;
+  border-right: 1px solid var(--line-rule);
+}
+
+.stat:last-child {
+  border-right: 0;
+}
+
+.stat dt {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.stat dd {
+  margin: 2px 0 0;
+  font-family: var(--font-mono);
+  font-size: 20px;
+}
+
+.stat[data-alert='true'] dt,
+.stat[data-alert='true'] dd {
+  color: var(--signal-critical);
+}
+
+/* ---- Project rows: the whole row is one link ---- */
+
+.project-rows ul {
   list-style: none;
   margin: 0;
   padding: 0;
+}
+
+.project-row {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 16px;
-}
-
-.card {
-  border: 1px solid var(--line-rule);
-  background: var(--surface-band);
-  padding: 16px;
-}
-
-.card-title {
-  margin: 0 0 4px;
-  font-size: 16px;
-  font-weight: 600;
-}
-
-.card-title a {
-  color: inherit;
+  grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) 80px 120px;
+  column-gap: 20px;
+  align-items: center;
+  min-height: 52px;
+  padding: 0 32px;
+  border-bottom: 1px solid var(--line-row);
+  color: var(--text-primary);
   text-decoration: none;
 }
 
-.card-title a:hover {
+a.project-row:hover {
+  color: var(--text-primary);
+  background: var(--surface-active);
+}
+
+.project-row-head {
+  min-height: 34px;
+  border-bottom-color: var(--line-rule);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.project-name {
+  min-width: 0;
+  font-weight: 600;
+}
+
+.row-code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+a.project-row:hover .row-code {
   color: var(--accent-brand);
 }
 
-.card-text {
-  margin: 0 0 12px;
+.project-row .col-description {
   color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.card-meta {
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 12px;
-  font-family: var(--font-mono);
+.project-row-head .col-description {
+  color: var(--text-muted);
+}
+
+a.project-row .col-created {
   font-size: 12px;
   color: var(--text-muted);
 }
 
-.badge {
-  color: var(--accent-brand);
-  font-weight: 500;
+/* Phones: fewer columns, smaller padding */
+@media (max-width: 760px) {
+  .overview-band {
+    padding: 20px 16px 0;
+  }
+
+  .overview-headline {
+    font-size: 22px;
+  }
+
+  .overview-stats {
+    margin: 0 -16px;
+  }
+
+  .stat {
+    padding: 12px 16px;
+  }
+
+  .project-row {
+    grid-template-columns: 32px minmax(0, 1fr) 40px;
+    padding: 0 16px;
+  }
+
+  .project-row .col-description,
+  .project-row .col-created {
+    display: none;
+  }
 }
 
 /* ==========================================================================
