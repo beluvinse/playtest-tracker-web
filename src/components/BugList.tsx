@@ -1,7 +1,9 @@
-import { useQuery } from '@tanstack/react-query'
+import { keepPreviousData, useQuery } from '@tanstack/react-query'
 import { bugKeys, getProjectBugs } from '../api/bugs'
-import type { BugStatus, Severity } from '../api/types'
+import type { BugDto, BugStatus, Severity } from '../api/types'
+import { toBugListParams, useBugFilters } from '../hooks/useBugFilters'
 import { formatDate, statusLabels } from '../utils/format'
+import { BugFilterBar } from './BugFilterBar'
 import { ErrorMessage } from './ErrorMessage'
 
 interface BugListProps {
@@ -9,26 +11,51 @@ interface BugListProps {
 }
 
 export function BugList({ projectId }: BugListProps) {
-  const { data, isPending, error } = useQuery({
-    queryKey: bugKeys.ofProject(projectId, {}),
-    queryFn: () => getProjectBugs(projectId),
+  const { filters, setFilter, clearFilters, hasFilters } = useBugFilters()
+  const params = toBugListParams(filters)
+
+  const { data, isPending, isPlaceholderData, error } = useQuery({
+    // The filters are part of the key, so each combination is cached separately
+    queryKey: bugKeys.ofProject(projectId, params),
+    queryFn: () => getProjectBugs(projectId, params),
+    // While a new filter loads, keep showing the previous results instead of "Loading…"
+    placeholderData: keepPreviousData,
   })
 
-  if (isPending) {
-    return <p className="muted">Loading bugs…</p>
-  }
+  return (
+    <>
+      <BugFilterBar filters={filters} onChange={setFilter} />
+      {isPending ? (
+        <p className="muted">Loading bugs…</p>
+      ) : error ? (
+        <ErrorMessage error={error} />
+      ) : data.items.length === 0 ? (
+        hasFilters ? (
+          <p className="muted">
+            No bugs match these filters.{' '}
+            <button type="button" className="link-button" onClick={clearFilters}>
+              Clear filters
+            </button>
+          </p>
+        ) : (
+          <p className="muted">No bugs reported yet.</p>
+        )
+      ) : (
+        <BugTable bugs={data.items} isUpdating={isPlaceholderData} />
+      )}
+    </>
+  )
+}
 
-  if (error) {
-    return <ErrorMessage error={error} />
-  }
+interface BugTableProps {
+  bugs: BugDto[]
+  isUpdating: boolean
+}
 
-  if (data.items.length === 0) {
-    return <p className="muted">No bugs reported yet.</p>
-  }
-
+function BugTable({ bugs, isUpdating }: BugTableProps) {
   return (
     // On narrow screens the table scrolls sideways instead of stretching the page
-    <div className="table-scroll">
+    <div className="table-scroll" aria-busy={isUpdating}>
       <table className="bug-table">
         <thead>
           <tr>
@@ -40,7 +67,7 @@ export function BugList({ projectId }: BugListProps) {
           </tr>
         </thead>
         <tbody>
-          {data.items.map((bug) => (
+          {bugs.map((bug) => (
             <tr key={bug.id}>
               <td className="bug-id">#{bug.id}</td>
               <td>{bug.title}</td>
