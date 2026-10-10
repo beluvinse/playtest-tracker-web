@@ -3,6 +3,7 @@ import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { bugKeys, patchBug } from '../api/bugs'
 import { ApiError } from '../api/client'
+import { projectKeys } from '../api/projects'
 import type { BugDto, PatchBugRequest, Severity } from '../api/types'
 import { ErrorMessage } from './ErrorMessage'
 import { FieldErrors } from './FieldErrors'
@@ -26,6 +27,8 @@ export function BugEditForm({ bug, onDone }: BugEditFormProps) {
     onSuccess: (updated) => {
       queryClient.setQueryData(bugKeys.detail(bug.id), updated)
       queryClient.invalidateQueries({ queryKey: bugKeys.all })
+      // A severity change can add or remove a critical bug: the projects carry that count
+      queryClient.invalidateQueries({ queryKey: projectKeys.all })
       onDone()
     },
   })

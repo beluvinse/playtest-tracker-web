@@ -9,7 +9,7 @@ import { DeleteProjectButton } from '../components/DeleteProjectButton'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { PixelIcon } from '../components/PixelIcon'
 import { ProjectEditForm } from '../components/ProjectEditForm'
-import { openCritical, useProjectBugCount } from '../hooks/useBugCount'
+import { useProjectBugCount } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 
 export function ProjectPage() {
@@ -63,7 +63,7 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
         <>
           <div className="band-title-row">
             <h1 className="band-title">{project.name}</h1>
-            <BugStats projectId={project.id} total={project.bugCount} />
+            <BugStats project={project} />
             <div className="project-actions">
               <button type="button" className="button-ghost" onClick={() => setIsEditing(true)}>
                 Edit
@@ -85,19 +85,20 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
   )
 }
 
-// "3 open · 1 critical · 5 total" (critical = critical and still open)
-function BugStats({ projectId, total }: { projectId: number; total: number }) {
-  const open = useProjectBugCount(projectId, { status: 'Open' })
-  const critical = useProjectBugCount(projectId, openCritical)
+// "3 open · 1 critical · 5 total". The critical count comes with the project (a critical bug
+// that is not resolved yet); the open count still needs its own small request.
+function BugStats({ project }: { project: ProjectDto }) {
+  const open = useProjectBugCount(project.id, { status: 'Open' })
+  const critical = project.openCriticalCount
 
   return (
     <span className="band-stats">
       <span className="stat-open">{open ?? '–'}</span> open ·{' '}
       {/* Red only when there is something to worry about */}
-      <span className="stat-critical" data-alert={critical !== undefined && critical > 0}>
-        {critical ?? '–'}
+      <span className="stat-critical" data-alert={critical > 0}>
+        {critical}
       </span>{' '}
-      critical · {total} total
+      critical · {project.bugCount} total
     </span>
   )
 }

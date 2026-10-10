@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRef } from 'react'
 import { bugKeys, patchBug } from '../api/bugs'
+import { projectKeys } from '../api/projects'
 import { bugStatuses } from '../api/types'
 import type { BugDto, BugStatus } from '../api/types'
 import { useDismiss } from '../hooks/useDismiss'
@@ -21,8 +22,10 @@ export function BugStatusControls({ bug }: { bug: BugDto }) {
     onSuccess: (updated) => {
       // The API answers with the updated bug, so this page can show it right away…
       queryClient.setQueryData(bugKeys.detail(bug.id), updated)
-      // …and every list and count that may include it gets refetched in the background
+      // …and every list and count that may include it gets refetched in the background.
+      // The projects too: their openCriticalCount depends on the status of their bugs.
       queryClient.invalidateQueries({ queryKey: bugKeys.all })
+      queryClient.invalidateQueries({ queryKey: projectKeys.all })
     },
   })
 

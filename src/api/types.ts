@@ -17,6 +17,8 @@ export interface ProjectDto {
   description: string | null
   createdAt: string // ISO 8601 with offset, e.g. "2026-10-06T13:12:23+00:00"
   bugCount: number
+  // Critical bugs that are not finished yet (Open or InProgress), counted by the API
+  openCriticalCount: number
 }
 
 export interface BugDto {
