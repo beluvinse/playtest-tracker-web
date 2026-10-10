@@ -5,11 +5,10 @@ import { Link, useNavigate, useParams } from 'react-router'
 import { bugKeys, createBug } from '../api/bugs'
 import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
-import { severities } from '../api/types'
 import type { CreateBugRequest, ProjectDto, Severity } from '../api/types'
-import { SeverityMeter } from '../components/BugBadges'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
+import { SeverityPicker } from '../components/SeverityPicker'
 import { projectCode } from '../utils/projectCode'
 
 // Same limits as BugRequestDto in the API
@@ -121,24 +120,7 @@ function BugForm({ project }: { project: ProjectDto }) {
         </label>
         <FieldErrors messages={fieldErrors.description} />
 
-        {/* A group of radio buttons: one choice, and arrow keys move between options */}
-        <fieldset className="severity-picker">
-          <legend className="form-field-legend">Severity</legend>
-          <div className="severity-options">
-            {severities.map((option) => (
-              <label key={option} className="severity-option">
-                <input
-                  type="radio"
-                  name="severity"
-                  value={option}
-                  checked={severity === option}
-                  onChange={() => setSeverity(option)}
-                />
-                <SeverityMeter severity={option} />
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <SeverityPicker value={severity} onChange={setSeverity} />
         <FieldErrors messages={fieldErrors.severity} />
 
         {apiError && !hasFieldErrors && <ErrorMessage error={apiError} />}

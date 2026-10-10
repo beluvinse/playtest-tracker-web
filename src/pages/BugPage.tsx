@@ -1,11 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
+import { useState } from 'react'
 import { Link, useParams } from 'react-router'
 import { bugKeys, getBug } from '../api/bugs'
 import { ApiError } from '../api/client'
 import { getProject, projectKeys } from '../api/projects'
 import type { BugDto, ProjectDto } from '../api/types'
 import { SeverityMeter } from '../components/BugBadges'
+import { BugEditForm } from '../components/BugEditForm'
 import { BugStatusControls } from '../components/BugStatusControls'
+import { DeleteBugButton } from '../components/DeleteBugButton'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { ProjectGlyph } from '../components/ProjectGlyph'
 import { formatDateTime } from '../utils/format'
@@ -52,14 +55,18 @@ export function BugPage() {
 }
 
 function BugReport({ bug, project }: { bug: BugDto; project: ProjectDto }) {
+  // Reading or editing. Local state: it only matters to this page, so no URL or cache needed.
+  const [isEditing, setIsEditing] = useState(false)
+  const code = bugCode(project.name, bug.id)
+
   return (
     <article className="bug-report">
       <header className="page-band bug-header">
         <div className="bug-meta">
-          <span className="bug-meta-code">{bugCode(project.name, bug.id)}</span>
+          <span className="bug-meta-code">{code}</span>
           <span>reported {formatDateTime(bug.createdAt)}</span>
         </div>
-        <h1 className="bug-heading">{bug.title}</h1>
+        {!isEditing && <h1 className="bug-heading">{bug.title}</h1>}
         <div className="bug-facts">
           <BugStatusControls bug={bug} />
           <SeverityMeter severity={bug.severity} />
@@ -67,17 +74,34 @@ function BugReport({ bug, project }: { bug: BugDto; project: ProjectDto }) {
             <ProjectGlyph projectId={project.id} size={12} />
             {project.name}
           </Link>
+          {!isEditing && (
+            <div className="bug-actions">
+              <button type="button" className="button-ghost" onClick={() => setIsEditing(true)}>
+                Edit
+              </button>
+              <DeleteBugButton bugId={bug.id} bugCode={code} projectId={project.id} />
+            </div>
+          )}
         </div>
       </header>
 
       <div className="bug-sections">
-        <section className="bug-section">
-          <h2 className="bug-section-title">
-            <span>01</span> Description
-          </h2>
-          {/* pre-line keeps the line breaks the tester typed */}
-          <p className="bug-description">{bug.description}</p>
-        </section>
+        {isEditing ? (
+          <section className="bug-section">
+            <h2 className="bug-section-title">
+              <span>00</span> Editing
+            </h2>
+            <BugEditForm bug={bug} onDone={() => setIsEditing(false)} />
+          </section>
+        ) : (
+          <section className="bug-section">
+            <h2 className="bug-section-title">
+              <span>01</span> Description
+            </h2>
+            {/* pre-line keeps the line breaks the tester typed */}
+            <p className="bug-description">{bug.description}</p>
+          </section>
+        )}
       </div>
     </article>
   )
