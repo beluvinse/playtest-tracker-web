@@ -12,6 +12,7 @@ import { NewProjectPage } from './NewProjectPage'
 
 const project: ProjectDto = {
   id: 1,
+  organizationId: 1,
   name: 'Pink in the Night',
   code: 'PIN',
   description: null,

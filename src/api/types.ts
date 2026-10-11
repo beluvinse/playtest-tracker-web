@@ -12,6 +12,7 @@ export const bugStatuses: BugStatus[] = ['Open', 'InProgress', 'Resolved', 'Clos
 
 export interface ProjectDto {
   id: number
+  organizationId: number // the organization it belongs to; only its members can see it
   name: string
   code: string // exactly 3 uppercase letters, unique: "PIN"
   description: string | null
@@ -95,6 +96,59 @@ export interface LoginRequest {
 
 export interface RegisterRequest extends LoginRequest {
   displayName: string
+}
+
+// ---- Organizations ----
+
+// What a person is inside an organization. There is exactly one Owner per organization.
+export type OrganizationRole = 'Owner' | 'Member'
+
+// An organization as the signed-in person sees it: what it is, and what THEY are in it
+export interface OrganizationDto {
+  id: number
+  name: string
+  // The example organization anybody can look around in: it can't be renamed or deleted,
+  // and its people can't change
+  isDemo: boolean
+  createdAt: string
+  myRole: OrganizationRole
+  memberCount: number
+  projectCount: number
+}
+
+// One person in an organization (never anything private, like a password)
+export interface MemberDto {
+  userId: string
+  displayName: string
+  email: string
+  role: OrganizationRole
+  joinedAt: string
+}
+
+// POST and PUT /api/organizations
+export interface OrganizationRequest {
+  name: string
+}
+
+// POST /api/organizations/{id}/members: the person must already have an account
+export interface AddMemberRequest {
+  email: string
+}
+
+// ---- The demo ----
+
+export interface DemoAccountDto {
+  email: string
+  displayName: string
+  role: OrganizationRole
+}
+
+// GET /api/demo (public, no token): the demo accounts and the password they all share.
+// Public on purpose, so the sign-in page can offer them.
+export interface DemoInfoDto {
+  organizationName: string
+  password: string
+  accounts: DemoAccountDto[]
 }
 
 // ---- Errors ----
