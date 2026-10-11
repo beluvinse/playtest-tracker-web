@@ -1763,3 +1763,61 @@ a.button-primary:hover {
   font-size: 11px;
   color: var(--text-faint);
 }
+
+/* ==========================================================================
+   User menu (top right)
+   ========================================================================== */
+
+.topbar {
+  justify-content: space-between;
+}
+
+.user-menu {
+  position: relative;
+}
+
+.user-menu-button {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  list-style: none; /* hides the default ▶ marker of <summary> */
+}
+
+.user-menu-button::-webkit-details-marker {
+  display: none;
+}
+
+.user-menu-button:hover svg,
+.user-menu[open] .user-menu-button svg {
+  outline: 2px solid var(--line-strong);
+  outline-offset: 2px;
+}
+
+.user-menu-list {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 3;
+  width: 240px;
+  padding: 6px 0;
+  background: var(--surface-input);
+  border: 1px solid var(--line-strong);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+}
+
+.user-menu-who {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 12px;
+  font-size: 13px;
+  overflow-wrap: anywhere; /* a long email must not stretch the menu */
+}
+
+.user-menu-who span {
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.user-menu-list .scanline {
+  margin: 4px 12px 6px;
+}

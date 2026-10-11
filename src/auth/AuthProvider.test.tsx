@@ -200,6 +200,43 @@ describe('AuthProvider', () => {
     })
   })
 
+  describe('how the session ended', () => {
+    it('is unknown before there was ever a session, and while there is one', async () => {
+      installFakeApi({ 'POST /api/auth/login': { status: 200, body: authResponse() } })
+      const { auth } = renderWithAuth()
+      expect(auth().sessionEnd).toBeNull()
+
+      await act(() => auth().login({ email: 'ana@test.local', password: 'Sunflower7' }))
+
+      expect(auth().sessionEnd).toBeNull()
+    })
+
+    it('is "signed-out" when the person chose to leave, and is forgotten at the next sign-in', async () => {
+      installFakeApi({ 'POST /api/auth/login': { status: 200, body: authResponse() } })
+      const { auth } = renderWithAuth()
+      await act(() => auth().login({ email: 'ana@test.local', password: 'Sunflower7' }))
+
+      act(() => auth().logout())
+      expect(auth().sessionEnd).toBe('signed-out')
+
+      await act(() => auth().login({ email: 'ana@test.local', password: 'Sunflower7' }))
+      expect(auth().sessionEnd).toBeNull()
+    })
+
+    it('is "expired" when the API stops accepting the token', async () => {
+      installFakeApi({
+        'POST /api/auth/login': { status: 200, body: authResponse() },
+        'GET /api/projects': { status: 401 },
+      })
+      const { auth } = renderWithAuth()
+      await act(() => auth().login({ email: 'ana@test.local', password: 'Sunflower7' }))
+
+      await act(() => apiRequest('/api/projects').catch(() => undefined))
+
+      expect(auth().sessionEnd).toBe('expired')
+    })
+  })
+
   describe('two tabs of the app', () => {
     // The browser fires a "storage" event in the OTHER tabs when one tab changes localStorage
     function otherTabChangesToken(token: string | null, key: string | null = tokenStorageKey) {
@@ -219,6 +256,7 @@ describe('AuthProvider', () => {
       otherTabChangesToken(null)
 
       expect(auth().status).toBe('anonymous')
+      expect(auth().sessionEnd).toBe('signed-out')
     })
 
     it('follows a login done in another tab', async () => {

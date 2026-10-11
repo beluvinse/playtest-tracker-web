@@ -5,7 +5,7 @@ import { authKeys, getCurrentUser, login as loginRequest, register as registerRe
 import { ApiError, setUnauthorizedHandler } from '../api/client'
 import type { AuthResponse, LoginRequest, RegisterRequest } from '../api/types'
 import { AuthContext } from './AuthContext'
-import type { AuthContextValue, AuthStatus } from './AuthContext'
+import type { AuthContextValue, AuthStatus, SessionEnd } from './AuthContext'
 import { clearToken, getToken, setToken, tokenStorageKey } from './tokenStorage'
 
 // Keeps the session for the whole app. The token lives in localStorage (so it survives a reload)
@@ -14,6 +14,7 @@ import { clearToken, getToken, setToken, tokenStorageKey } from './tokenStorage'
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient()
   const [token, setTokenState] = useState<string | null>(getToken)
+  const [sessionEnd, setSessionEnd] = useState<SessionEnd>(null)
 
   // Whose token is it? Only asked when there is one. After a login we already know the answer,
   // so it's put in the cache by hand (see saveSession) and this request never happens.
@@ -28,9 +29,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Forgets everything about the person who was signed in: the token and every cached answer
   // (their projects, bugs…), so the next person to sign in on this browser never sees them
-  const endSession = useCallback(() => {
+  const logout = useCallback(() => {
     clearToken()
     setTokenState(null)
+    setSessionEnd('signed-out')
     queryClient.clear()
   }, [queryClient])
 
@@ -39,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setToken(response.token)
       queryClient.setQueryData(authKeys.me, response.user)
       setTokenState(response.token)
+      setSessionEnd(null)
     },
     [queryClient],
   )
@@ -57,6 +60,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     setUnauthorizedHandler(() => {
       setTokenState(null)
+      setSessionEnd('expired')
       queryClient.clear()
     })
     return () => setUnauthorizedHandler(null)
@@ -71,7 +75,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
       const current = getToken()
       setTokenState(current)
-      if (current === null) queryClient.clear()
+      if (current === null) {
+        // Another tab signed out
+        setSessionEnd('signed-out')
+        queryClient.clear()
+      } else {
+        setSessionEnd(null)
+      }
     }
 
     window.addEventListener('storage', onStorage)
@@ -96,12 +106,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       status,
       user: token !== null ? (me.data ?? null) : null,
       error: status === 'error' ? me.error : null,
+      sessionEnd,
       login,
       register,
-      logout: endSession,
+      logout,
       retry: () => void refetchMe(),
     }
-  }, [token, me.data, me.isError, me.error, login, register, endSession, refetchMe])
+  }, [token, me.data, me.isError, me.error, sessionEnd, login, register, logout, refetchMe])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

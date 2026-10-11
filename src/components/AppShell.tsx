@@ -6,6 +6,7 @@ import { getProjects, projectKeys } from '../api/projects'
 import { bugCode } from '../utils/projectCode'
 import { PixelIcon } from './PixelIcon'
 import { ProjectSwitcher } from './ProjectSwitcher'
+import { UserMenu } from './UserMenu'
 
 // The frame around every page: sidebar on the left, top bar, and the page itself
 export function AppShell({ children }: { children: ReactNode }) {
@@ -106,6 +107,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </>
             )}
           </nav>
+          <UserMenu />
         </header>
         <main className="page">{children}</main>
       </div>

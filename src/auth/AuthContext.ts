@@ -8,10 +8,17 @@ import type { LoginRequest, RegisterRequest, UserDto } from '../api/types'
 //                  The session is NOT dropped: the token may be perfectly fine.
 export type AuthStatus = 'loading' | 'authenticated' | 'anonymous' | 'error'
 
+// How the last session ended, once it has: the person chose to sign out, or the API stopped
+// accepting the token (it expired, or the account is gone). null while there is a session,
+// and before there ever was one. After a sign-out the app must not remember which page the
+// person was on (the next person to sign in isn't going to want it); after an expiry it should.
+export type SessionEnd = 'signed-out' | 'expired' | null
+
 export interface AuthContextValue {
   status: AuthStatus
   user: UserDto | null
   error: unknown // what went wrong, when status is 'error'
+  sessionEnd: SessionEnd
 
   // login and register reject with an ApiError when the API says no (wrong password,
   // email taken…): the form that called them shows it

@@ -1,45 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router'
+import { act, fireEvent, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
-import App from './App'
 import { apiRequest } from './api/client'
-import { AuthProvider } from './auth/AuthProvider'
 import { getToken, setToken } from './auth/tokenStorage'
-import { ana, authResponse, installFakeApi, installUnreachableApi } from './test/fakeApi'
-
-// The real app (routes, guard, pages) in a router that lives in memory, starting at `path`.
-// The API is the fake one from the tests, so nothing touches the network.
-function renderApp(path: string) {
-  const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
-
-  render(
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <MemoryRouter initialEntries={[path]}>
-          <App />
-        </MemoryRouter>
-      </AuthProvider>
-    </QueryClientProvider>,
-  )
-}
-
-// What the fake API knows. "me" only accepts ana's token, like the real one.
-const apiRoutes = {
-  'GET /api/projects': { status: 200, body: [] },
-  'GET /api/auth/me': ({ authorization }: { authorization: string | null }) =>
-    authorization === 'Bearer token-for-ana' ? { status: 200, body: ana } : { status: 401 },
-  'POST /api/auth/login': { status: 200, body: authResponse() },
-  'POST /api/auth/register': { status: 201, body: authResponse() },
-}
-
-const heading = (name: string) => screen.findByRole('heading', { name })
-
-async function fillSignIn() {
-  fireEvent.change(await screen.findByLabelText('Email'), { target: { value: 'ana@test.local' } })
-  fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Sunflower7' } })
-  fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
-}
+import { installFakeApi, installUnreachableApi } from './test/fakeApi'
+import { apiRoutes, fillSignIn, heading, renderApp } from './test/renderApp'
 
 describe('the door of the app', () => {
   describe('someone who is not signed in', () => {
