@@ -18,6 +18,10 @@ export interface AuthContextValue {
   login: (request: LoginRequest) => Promise<void>
   register: (request: RegisterRequest) => Promise<void>
   logout: () => void
+
+  // Asks the API again whose the saved token is. For when the status is 'error'
+  // (API down): the person presses "Try again" once it is back.
+  retry: () => void
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

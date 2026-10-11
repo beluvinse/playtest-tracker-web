@@ -24,6 +24,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     staleTime: Infinity, // a person's identity doesn't change while the session lasts
   })
 
+  const refetchMe = me.refetch
+
   // Forgets everything about the person who was signed in: the token and every cached answer
   // (their projects, bugs…), so the next person to sign in on this browser never sees them
   const endSession = useCallback(() => {
@@ -97,8 +99,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       login,
       register,
       logout: endSession,
+      retry: () => void refetchMe(),
     }
-  }, [token, me.data, me.isError, me.error, login, register, endSession])
+  }, [token, me.data, me.isError, me.error, login, register, endSession, refetchMe])
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }

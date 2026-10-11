@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router'
 import { AuthLayout } from './components/AuthLayout'
+import { RequireAuth } from './components/RequireAuth'
 import { ShellLayout } from './components/ShellLayout'
 import { BugPage } from './pages/BugPage'
 import { LoginPage } from './pages/LoginPage'
@@ -18,16 +19,18 @@ function App() {
         <Route path="/register" element={<RegisterPage />} />
       </Route>
 
-      {/* Everything else lives inside the app's frame */}
-      <Route element={<ShellLayout />}>
-        <Route path="/" element={<ProjectsPage />} />
-        {/* A fixed segment ("new") wins over a parameter (":projectId"), whatever the order */}
-        <Route path="/projects/new" element={<NewProjectPage />} />
-        <Route path="/projects/:projectId" element={<ProjectPage />} />
-        {/* Like POST /api/projects/{projectId}/bugs: a new bug is created inside its project */}
-        <Route path="/projects/:projectId/bugs/new" element={<NewBugPage />} />
-        {/* Same shape as the API: a bug has its own address, outside its project */}
-        <Route path="/bugs/:bugId" element={<BugPage />} />
+      {/* Everything else needs a signed-in person, and lives inside the app's frame */}
+      <Route element={<RequireAuth />}>
+        <Route element={<ShellLayout />}>
+          <Route path="/" element={<ProjectsPage />} />
+          {/* A fixed segment ("new") wins over a parameter (":projectId"), whatever the order */}
+          <Route path="/projects/new" element={<NewProjectPage />} />
+          <Route path="/projects/:projectId" element={<ProjectPage />} />
+          {/* Like POST /api/projects/{projectId}/bugs: a new bug is created inside its project */}
+          <Route path="/projects/:projectId/bugs/new" element={<NewBugPage />} />
+          {/* Same shape as the API: a bug has its own address, outside its project */}
+          <Route path="/bugs/:bugId" element={<BugPage />} />
+        </Route>
       </Route>
     </Routes>
   )
