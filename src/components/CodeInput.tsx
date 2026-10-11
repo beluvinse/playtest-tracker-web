@@ -13,6 +13,7 @@ export function CodeInput({ value, onChange, invalid }: CodeInputProps) {
       Code
       <input
         type="text"
+        name="code"
         value={value}
         onChange={(e) => onChange(cleanCode(e.target.value))}
         required

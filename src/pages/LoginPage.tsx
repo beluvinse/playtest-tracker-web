@@ -4,6 +4,8 @@ import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { BugArt } from '../components/BugArt'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { FieldErrors } from '../components/FieldErrors'
+import { useFormValidation } from '../hooks/useFormValidation'
 import { getRedirectTarget } from '../auth/redirect'
 import { useAuth } from '../auth/useAuth'
 
@@ -20,8 +22,13 @@ export function LoginPage() {
     onSuccess: () => navigate(getRedirectTarget(location.state), { replace: true }),
   })
 
-  function handleSubmit(event: FormEvent) {
+  const { validate, forgetError, messagesFor } = useFormValidation()
+  const emailMessages = messagesFor('email', undefined)
+  const passwordMessages = messagesFor('password', undefined)
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!validate(event.currentTarget)) return
     mutation.mutate({ email: email.trim(), password })
   }
 
@@ -40,7 +47,13 @@ export function LoginPage() {
         </div>
       </div>
 
-      <form className="project-form auth-form" onSubmit={handleSubmit}>
+      {/* noValidate turns off the browser's own error bubble; useFormValidation shows ours */}
+      <form
+        className="project-form auth-form"
+        onSubmit={handleSubmit}
+        onInput={forgetError}
+        noValidate
+      >
         <label className="form-field">
           Email
           <input
@@ -50,11 +63,13 @@ export function LoginPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             maxLength={256}
+            aria-invalid={Boolean(emailMessages)}
             // Tells the browser and password managers what each field is, so they can fill it in
             autoComplete="username"
             autoFocus
           />
         </label>
+        <FieldErrors messages={emailMessages} />
 
         <label className="form-field">
           Password
@@ -65,9 +80,11 @@ export function LoginPage() {
             onChange={(e) => setPassword(e.target.value)}
             required
             maxLength={100}
+            aria-invalid={Boolean(passwordMessages)}
             autoComplete="current-password"
           />
         </label>
+        <FieldErrors messages={passwordMessages} />
 
         {/* "Invalid email or password" (the API doesn't say which), or the lockout message, or
             "can't reach the API": all come as the error's message */}

@@ -5,6 +5,7 @@ import { bugKeys, patchBug } from '../api/bugs'
 import { ApiError } from '../api/client'
 import { projectKeys } from '../api/projects'
 import type { BugDto, PatchBugRequest, Severity } from '../api/types'
+import { useFormValidation } from '../hooks/useFormValidation'
 import { ErrorMessage } from './ErrorMessage'
 import { FieldErrors } from './FieldErrors'
 import { SeverityPicker } from './SeverityPicker'
@@ -33,8 +34,11 @@ export function BugEditForm({ bug, onDone }: BugEditFormProps) {
     },
   })
 
-  function handleSubmit(event: FormEvent) {
+  const { validate, forgetError, messagesFor } = useFormValidation()
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!validate(event.currentTarget)) return
 
     // PATCH only what changed. If someone else edited another field meanwhile,
     // we don't overwrite it with the old value we had on screen (a PUT would).
@@ -55,37 +59,46 @@ export function BugEditForm({ bug, onDone }: BugEditFormProps) {
   const apiError = mutation.error
   const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
+  const titleMessages = messagesFor('title', fieldErrors.title)
+  const descriptionMessages = messagesFor('description', fieldErrors.description)
 
   return (
-    <form className="project-form bug-edit-form" onSubmit={handleSubmit}>
+    <form
+      className="project-form bug-edit-form"
+      onSubmit={handleSubmit}
+      onInput={forgetError}
+      noValidate
+    >
       <label className="form-field">
         Title
         <input
           type="text"
+          name="title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           required
           minLength={3}
           maxLength={200}
-          aria-invalid={Boolean(fieldErrors.title)}
+          aria-invalid={Boolean(titleMessages)}
           autoFocus
         />
       </label>
-      <FieldErrors messages={fieldErrors.title} />
+      <FieldErrors messages={titleMessages} />
 
       <label className="form-field">
         Description
         <textarea
+          name="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           required
           minLength={10}
           maxLength={4000}
           rows={6}
-          aria-invalid={Boolean(fieldErrors.description)}
+          aria-invalid={Boolean(descriptionMessages)}
         />
       </label>
-      <FieldErrors messages={fieldErrors.description} />
+      <FieldErrors messages={descriptionMessages} />
 
       <SeverityPicker value={severity} onChange={setSeverity} />
       <FieldErrors messages={fieldErrors.severity} />

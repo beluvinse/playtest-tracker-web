@@ -1346,9 +1346,17 @@ a.project-row .col-created {
   resize: vertical;
 }
 
+/* A field with a problem: red border, thickened a pixel (a box-shadow doesn't move the layout) */
 .form-field input[aria-invalid='true'],
 .form-field textarea[aria-invalid='true'] {
   border-color: var(--signal-critical);
+  box-shadow: 0 0 0 1px var(--signal-critical);
+}
+
+/* The pixel "x" that marks every error. A mask paints it with currentColor, so it takes the
+   color of the text next to it, in both themes. */
+:root {
+  --icon-pixel-x: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 4' shape-rendering='crispEdges'%3E%3Cpath d='M0 0h1v1h-1zM3 0h1v1h-1zM1 1h2v2h-2zM0 3h1v1h-1zM3 3h1v1h-1z'/%3E%3C/svg%3E");
 }
 
 .form-optional {
@@ -1367,12 +1375,34 @@ a.project-row .col-created {
   color: var(--accent-brand);
 }
 
+/* The messages under a field */
 .field-errors {
   margin: 0;
   padding: 0;
   list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
   font-size: 13px;
   color: var(--signal-critical);
+}
+
+.field-errors li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.field-errors li::before,
+.error-message::before {
+  content: '';
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin-top: 6px; /* lines the icon up with the first line of text */
+  background: currentColor;
+  -webkit-mask: var(--icon-pixel-x) center / contain no-repeat;
+  mask: var(--icon-pixel-x) center / contain no-repeat;
 }
 
 .form-actions {
@@ -1604,10 +1634,21 @@ a.button-primary:hover {
   }
 }
 
+/* An error about the whole form or page (wrong password, API down…): a red bar on the left
+   and a faint red wash, like the "Actual" block of a bug report in the design */
 .error-message {
-  border: 1px solid var(--signal-critical);
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 12px;
+  border-left: 3px solid var(--signal-critical);
+  background: color-mix(in srgb, var(--signal-critical) 8%, transparent);
   color: var(--text-primary);
-  padding: 12px 16px;
+  font-size: 13px;
+}
+
+.error-message::before {
+  color: var(--signal-critical);
 }
 
 /* ==========================================================================

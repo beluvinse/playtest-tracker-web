@@ -6,6 +6,7 @@ import { ApiError } from '../api/client'
 import { BugArt } from '../components/BugArt'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
+import { useFormValidation } from '../hooks/useFormValidation'
 import { getRedirectTarget } from '../auth/redirect'
 import { useAuth } from '../auth/useAuth'
 
@@ -29,16 +30,23 @@ export function RegisterPage() {
     onSuccess: () => navigate(getRedirectTarget(location.state), { replace: true }),
   })
 
-  function handleSubmit(event: FormEvent) {
+  const { validate, forgetError, messagesFor } = useFormValidation()
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!validate(event.currentTarget)) return
     mutation.mutate({ displayName: displayName.trim(), email: email.trim(), password })
   }
 
   // Problems the API attached to a field go under that field (email taken, weak password…);
-  // anything else (API down…) goes in a box above the button
+  // anything else (API down…) goes in a box above the button. Under each field, our own
+  // message (from the browser-side check, before anything is sent) takes the place of the API's.
   const apiError = mutation.error
   const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
+  const nameMessages = messagesFor('displayName', fieldErrors.displayName)
+  const emailMessages = messagesFor('email', fieldErrors.email)
+  const passwordMessages = messagesFor('password', fieldErrors.password)
 
   return (
     <>
@@ -55,7 +63,13 @@ export function RegisterPage() {
         </div>
       </div>
 
-      <form className="project-form auth-form" onSubmit={handleSubmit}>
+      {/* noValidate turns off the browser's own error bubble; useFormValidation shows ours */}
+      <form
+        className="project-form auth-form"
+        onSubmit={handleSubmit}
+        onInput={forgetError}
+        noValidate
+      >
         <label className="form-field">
           Your name
           <input
@@ -67,12 +81,12 @@ export function RegisterPage() {
             minLength={displayNameMinLength}
             maxLength={displayNameMaxLength}
             placeholder="belu"
-            aria-invalid={Boolean(fieldErrors.displayName)}
+            aria-invalid={Boolean(nameMessages)}
             autoComplete="nickname"
             autoFocus
           />
         </label>
-        <FieldErrors messages={fieldErrors.displayName} />
+        <FieldErrors messages={nameMessages} />
 
         <label className="form-field">
           Email
@@ -83,11 +97,11 @@ export function RegisterPage() {
             onChange={(e) => setEmail(e.target.value)}
             required
             maxLength={256}
-            aria-invalid={Boolean(fieldErrors.email)}
+            aria-invalid={Boolean(emailMessages)}
             autoComplete="email"
           />
         </label>
-        <FieldErrors messages={fieldErrors.email} />
+        <FieldErrors messages={emailMessages} />
 
         <label className="form-field">
           Password
@@ -99,13 +113,13 @@ export function RegisterPage() {
             required
             minLength={passwordMinLength}
             maxLength={100}
-            aria-invalid={Boolean(fieldErrors.password)}
+            aria-invalid={Boolean(passwordMessages)}
             aria-describedby="password-hint"
             // "new-password" lets password managers offer to generate and save one
             autoComplete="new-password"
           />
         </label>
-        <FieldErrors messages={fieldErrors.password} />
+        <FieldErrors messages={passwordMessages} />
         <p id="password-hint" className="form-hint">
           at least {passwordMinLength} characters, with a number and a lowercase letter
         </p>

@@ -8,6 +8,7 @@ import { getProject, projectKeys } from '../api/projects'
 import type { CreateBugRequest, ProjectDto, Severity } from '../api/types'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
+import { useFormValidation } from '../hooks/useFormValidation'
 import { SeverityPicker } from '../components/SeverityPicker'
 
 // Same limits as BugRequestDto in the API
@@ -69,14 +70,19 @@ function BugForm({ project }: { project: ProjectDto }) {
     },
   })
 
-  function handleSubmit(event: FormEvent) {
+  const { validate, forgetError, messagesFor } = useFormValidation()
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!validate(event.currentTarget)) return
     mutation.mutate({ title: title.trim(), description: description.trim(), severity })
   }
 
   const apiError = mutation.error
   const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
+  const titleMessages = messagesFor('title', fieldErrors.title)
+  const descriptionMessages = messagesFor('description', fieldErrors.description)
 
   return (
     <section className="page-band report-bug">
@@ -85,28 +91,30 @@ function BugForm({ project }: { project: ProjectDto }) {
       </div>
       <h1 className="band-title">Report a bug in {project.name}</h1>
 
-      <form className="project-form bug-form" onSubmit={handleSubmit}>
+      <form className="project-form bug-form" onSubmit={handleSubmit} onInput={forgetError} noValidate>
         <label className="form-field">
           Title
           <input
             type="text"
+            name="title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
             minLength={titleMinLength}
             maxLength={titleMaxLength}
             placeholder="Neon sign flickers too fast"
-            aria-invalid={Boolean(fieldErrors.title)}
+            aria-invalid={Boolean(titleMessages)}
             autoFocus
           />
         </label>
-        <FieldErrors messages={fieldErrors.title} />
+        <FieldErrors messages={titleMessages} />
 
         <label className="form-field">
           <span>
             What happened <span className="form-optional">steps, expected vs actual</span>
           </span>
           <textarea
+            name="description"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             required
@@ -114,10 +122,10 @@ function BugForm({ project }: { project: ProjectDto }) {
             maxLength={descriptionMaxLength}
             rows={6}
             placeholder={'1. Start a new night\n2. Look at the neon sign\nExpected: slow pulse. Actual: fast flicker.'}
-            aria-invalid={Boolean(fieldErrors.description)}
+            aria-invalid={Boolean(descriptionMessages)}
           />
         </label>
-        <FieldErrors messages={fieldErrors.description} />
+        <FieldErrors messages={descriptionMessages} />
 
         <SeverityPicker value={severity} onChange={setSeverity} />
         <FieldErrors messages={fieldErrors.severity} />

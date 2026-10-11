@@ -8,6 +8,7 @@ import { BugArt } from '../components/BugArt'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { CodeInput } from '../components/CodeInput'
 import { FieldErrors } from '../components/FieldErrors'
+import { useFormValidation } from '../hooks/useFormValidation'
 import { bugCode, suggestCode } from '../utils/projectCode'
 
 // Same limits as ProjectRequestDto in the API. The browser checks them first (instant feedback);
@@ -41,8 +42,11 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
     },
   })
 
-  function handleSubmit(event: FormEvent) {
+  const { validate, forgetError, messagesFor } = useFormValidation()
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!validate(event.currentTarget)) return
     mutation.mutate({
       name: name.trim(),
       code,
@@ -51,10 +55,14 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
   }
 
   // Errors the API attached to a field (400 validation) go under that field;
-  // anything else (API down, 500…) goes in a box above the button
+  // anything else (API down, 500…) goes in a box above the button. Under each field, our own
+  // message (from the check in the browser, before anything is sent) comes first.
   const apiError = mutation.error
   const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
+  const nameMessages = messagesFor('name', fieldErrors.name)
+  const codeMessages = messagesFor('code', fieldErrors.code)
+  const descriptionMessages = messagesFor('description', fieldErrors.description)
 
   return (
     <div className="new-project">
@@ -76,27 +84,29 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
           </div>
         </div>
 
-        <form className="project-form" onSubmit={handleSubmit}>
+        {/* noValidate turns off the browser's own error bubble; useFormValidation shows ours */}
+        <form className="project-form" onSubmit={handleSubmit} onInput={forgetError} noValidate>
           {/* Name and code side by side, like in the design */}
           <div className="form-row">
             <label className="form-field">
               Game name
               <input
                 type="text"
+                name="name"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
                 minLength={nameMinLength}
                 maxLength={nameMaxLength}
                 placeholder="Pink in the Night"
-                aria-invalid={Boolean(fieldErrors.name)}
+                aria-invalid={Boolean(nameMessages)}
                 autoFocus
               />
             </label>
-            <CodeInput value={code} onChange={setTypedCode} invalid={Boolean(fieldErrors.code)} />
+            <CodeInput value={code} onChange={setTypedCode} invalid={Boolean(codeMessages)} />
           </div>
-          <FieldErrors messages={fieldErrors.name} />
-          <FieldErrors messages={fieldErrors.code} />
+          <FieldErrors messages={nameMessages} />
+          <FieldErrors messages={codeMessages} />
           <p id="code-hint" className="form-hint">
             bug ids will look like{' '}
             <span className="form-hint-code">{bugCode(code || 'PIN', 1)}</span> · 3 letters,
@@ -109,14 +119,15 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
             </span>
             <input
               type="text"
+              name="description"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               maxLength={descriptionMaxLength}
               placeholder="Seated VR experience"
-              aria-invalid={Boolean(fieldErrors.description)}
+              aria-invalid={Boolean(descriptionMessages)}
             />
           </label>
-          <FieldErrors messages={fieldErrors.description} />
+          <FieldErrors messages={descriptionMessages} />
 
           {apiError && !hasFieldErrors && <ErrorMessage error={apiError} />}
 

@@ -4,6 +4,7 @@ import type { FormEvent } from 'react'
 import { ApiError } from '../api/client'
 import { projectKeys, updateProject } from '../api/projects'
 import type { ProjectDto, ProjectRequest } from '../api/types'
+import { useFormValidation } from '../hooks/useFormValidation'
 import { bugCode } from '../utils/projectCode'
 import { CodeInput } from './CodeInput'
 import { ErrorMessage } from './ErrorMessage'
@@ -32,8 +33,11 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
     },
   })
 
-  function handleSubmit(event: FormEvent) {
+  const { validate, forgetError, messagesFor } = useFormValidation()
+
+  function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (!validate(event.currentTarget)) return
     const changes = { name: name.trim(), code, description: description.trim() || null }
 
     // Nothing changed: skip the request
@@ -52,27 +56,36 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
   const apiError = mutation.error
   const fieldErrors = apiError instanceof ApiError ? apiError.fieldErrors : {}
   const hasFieldErrors = Object.keys(fieldErrors).length > 0
+  const nameMessages = messagesFor('name', fieldErrors.name)
+  const codeMessages = messagesFor('code', fieldErrors.code)
+  const descriptionMessages = messagesFor('description', fieldErrors.description)
 
   return (
-    <form className="project-form project-edit-form" onSubmit={handleSubmit}>
+    <form
+      className="project-form project-edit-form"
+      onSubmit={handleSubmit}
+      onInput={forgetError}
+      noValidate
+    >
       <div className="form-row">
         <label className="form-field">
           Game name
           <input
             type="text"
+            name="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
             minLength={2}
             maxLength={100}
-            aria-invalid={Boolean(fieldErrors.name)}
+            aria-invalid={Boolean(nameMessages)}
             autoFocus
           />
         </label>
-        <CodeInput value={code} onChange={setCode} invalid={Boolean(fieldErrors.code)} />
+        <CodeInput value={code} onChange={setCode} invalid={Boolean(codeMessages)} />
       </div>
-      <FieldErrors messages={fieldErrors.name} />
-      <FieldErrors messages={fieldErrors.code} />
+      <FieldErrors messages={nameMessages} />
+      <FieldErrors messages={codeMessages} />
       <p id="code-hint" className="form-hint">
         bugs show as <span className="form-hint-code">{bugCode(code || '___', 1)}</span> · changing
         the code renames every bug id in this project
@@ -84,13 +97,14 @@ export function ProjectEditForm({ project, onDone }: ProjectEditFormProps) {
         </span>
         <input
           type="text"
+          name="description"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           maxLength={1000}
-          aria-invalid={Boolean(fieldErrors.description)}
+          aria-invalid={Boolean(descriptionMessages)}
         />
       </label>
-      <FieldErrors messages={fieldErrors.description} />
+      <FieldErrors messages={descriptionMessages} />
 
       {apiError && !hasFieldErrors && <ErrorMessage error={apiError} />}
 
