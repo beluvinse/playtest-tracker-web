@@ -31,6 +31,9 @@ const bug: BugDto = {
   createdAt: '2026-10-06T13:12:23+00:00',
 }
 
+// A project is created inside an organization, and the address says which
+const newProjectAddress = '/organizations/1/projects/new'
+
 function show(element: ReactElement, path = '/') {
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   render(
@@ -38,6 +41,7 @@ function show(element: ReactElement, path = '/') {
       <MemoryRouter initialEntries={[path]}>
         <Routes>
           <Route path="/" element={element} />
+          <Route path="/organizations/:organizationId/projects/new" element={element} />
           <Route path="/projects/:projectId/bugs/new" element={element} />
         </Routes>
       </MemoryRouter>
@@ -51,30 +55,30 @@ const write = (label: string, value: string) =>
 describe('errors on the project and bug forms', () => {
   it('new project: empty name shows our message and sends nothing', () => {
     const api = installFakeApi({})
-    show(<NewProjectPage />)
+    show(<NewProjectPage />, newProjectAddress)
 
     fireEvent.click(screen.getByRole('button', { name: 'Create project' }))
 
     // name and code are both empty and required
     expect(screen.getAllByText('This field is required.')).toHaveLength(2)
-    expect(api.count('POST /api/projects')).toBe(0)
+    expect(api.count('POST /api/organizations/1/projects')).toBe(0)
     expect(document.activeElement).toBe(screen.getByLabelText('Game name'))
   })
 
   it('new project: a name that is too short says how long it has to be', () => {
     const api = installFakeApi({})
-    show(<NewProjectPage />)
+    show(<NewProjectPage />, newProjectAddress)
 
     write('Game name', 'A') // the code follows the name, so only the name is wrong
     fireEvent.click(screen.getByRole('button', { name: 'Create project' }))
 
     expect(screen.getByText('Use at least 2 characters.')).toBeTruthy()
-    expect(api.count('POST /api/projects')).toBe(0)
+    expect(api.count('POST /api/organizations/1/projects')).toBe(0)
   })
 
   it('new project: a code that is not 3 letters explains the format', () => {
     installFakeApi({})
-    show(<NewProjectPage />)
+    show(<NewProjectPage />, newProjectAddress)
 
     write('Game name', 'Pink in the Night')
     write('Code', 'PI')
@@ -84,13 +88,13 @@ describe('errors on the project and bug forms', () => {
   })
 
   it('new project: a valid form is sent', async () => {
-    const api = installFakeApi({ 'POST /api/projects': { status: 201, body: project } })
-    show(<NewProjectPage />)
+    const api = installFakeApi({ 'POST /api/organizations/1/projects': { status: 201, body: project } })
+    show(<NewProjectPage />, newProjectAddress)
 
     write('Game name', 'Pink in the Night')
     fireEvent.click(screen.getByRole('button', { name: 'Create project' }))
 
-    await vi.waitFor(() => expect(api.count('POST /api/projects')).toBe(1))
+    await vi.waitFor(() => expect(api.count('POST /api/organizations/1/projects')).toBe(1))
   })
 
   it('edit project: an emptied name is caught before the request', () => {

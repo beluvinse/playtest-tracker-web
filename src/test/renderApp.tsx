@@ -3,7 +3,7 @@ import { fireEvent, render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import App from '../App'
 import { AuthProvider } from '../auth/AuthProvider'
-import { ana, authResponse } from './fakeApi'
+import { ana, authResponse, organization } from './fakeApi'
 
 // The real app (routes, guard, pages) in a router that lives in memory, starting at `path`.
 // The API is the fake one from the tests, so nothing touches the network.
@@ -23,7 +23,9 @@ export function renderApp(path: string) {
 
 // What the fake API knows. "me" only accepts ana's token, like the real one.
 export const apiRoutes = {
-  'GET /api/projects': { status: 200, body: [] },
+  // One organization (her personal one) with no projects yet
+  'GET /api/organizations': { status: 200, body: [organization()] },
+  'GET /api/organizations/1/projects': { status: 200, body: [] },
   'GET /api/auth/me': ({ authorization }: { authorization: string | null }) =>
     authorization === 'Bearer token-for-ana' ? { status: 200, body: ana } : { status: 401 },
   'POST /api/auth/login': { status: 200, body: authResponse() },
@@ -31,7 +33,7 @@ export const apiRoutes = {
 }
 
 // Waits for a page title to show up
-export const heading = (name: string) => screen.findByRole('heading', { name })
+export const heading = (name: string | RegExp) => screen.findByRole('heading', { name })
 
 // Fills in the sign-in form and sends it
 export async function fillSignIn() {

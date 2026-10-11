@@ -6,16 +6,22 @@ import { PixelIcon } from './PixelIcon'
 import { ProjectGlyph } from './ProjectGlyph'
 
 interface ProjectSwitcherProps {
-  projects: ProjectDto[]
+  projects: ProjectDto[] // the ones of the current organization
   current: ProjectDto | undefined // undefined = "All projects"
+  organizationId: number | undefined // where "All projects" and "New project" lead (unknown while loading)
 }
 
 // The box at the top of the sidebar: shows the current project and opens a menu to switch.
 // <details> gives open/close and keyboard support for free; useDismiss adds
 // "close on click outside" and "close on Escape".
-export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
+export function ProjectSwitcher({ projects, current, organizationId }: ProjectSwitcherProps) {
   const detailsRef = useRef<HTMLDetailsElement>(null)
   useDismiss(detailsRef)
+
+  // "/" sends the person to one of their organizations, which is the best we can do while
+  // we don't know which one this is
+  const overviewPath = organizationId === undefined ? '/' : `/organizations/${organizationId}`
+  const newProjectPath = organizationId === undefined ? '/' : `${overviewPath}/projects/new`
 
   // Picking an option navigates, so the menu should close too
   function closeMenu() {
@@ -44,7 +50,7 @@ export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
       <div className="switcher-menu">
         <div className="eyebrow switcher-heading">Switch project</div>
         <Link
-          to="/"
+          to={overviewPath}
           className="switcher-option"
           aria-current={current ? undefined : 'true'}
           onClick={closeMenu}
@@ -71,7 +77,7 @@ export function ProjectSwitcher({ projects, current }: ProjectSwitcherProps) {
           </Link>
         ))}
         <div className="switcher-divider" aria-hidden="true" />
-        <Link to="/projects/new" className="switcher-option switcher-new" onClick={closeMenu}>
+        <Link to={newProjectPath} className="switcher-option switcher-new" onClick={closeMenu}>
           <PixelIcon name="plus" size={12} />
           <span>New project</span>
         </Link>

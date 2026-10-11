@@ -31,7 +31,7 @@ describe('the user menu', () => {
   it('does not hand the page you were on to whoever signs in next', async () => {
     installFakeApi(apiRoutes)
     setToken('token-for-ana')
-    renderApp('/projects/new') // a page deep inside the app
+    renderApp('/organizations/1/projects/new') // a page deep inside the app
     await heading('New project')
 
     fireEvent.click(screen.getByRole('button', { name: 'Sign out', hidden: true }))

@@ -24,16 +24,8 @@ export function createOrganizationProject(organizationId: number, project: Proje
   })
 }
 
-export function getProjects() {
-  return apiRequest<ProjectDto[]>('/api/projects')
-}
-
 export function getProject(id: number) {
   return apiRequest<ProjectDto>(`/api/projects/${id}`)
-}
-
-export function createProject(project: ProjectRequest) {
-  return apiRequest<ProjectDto>('/api/projects', { method: 'POST', body: project })
 }
 
 export function updateProject(id: number, project: ProjectRequest) {

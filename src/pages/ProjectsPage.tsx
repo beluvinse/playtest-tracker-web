@@ -1,18 +1,31 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link, Navigate } from 'react-router'
-import { getProjects, projectKeys } from '../api/projects'
+import { Link, Navigate, useParams } from 'react-router'
+import { ApiError } from '../api/client'
+import { getOrganizationProjects, projectKeys } from '../api/projects'
 import type { ProjectDto } from '../api/types'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { OrganizationNotFound } from '../components/OrganizationNotFound'
 import { ProjectGlyph } from '../components/ProjectGlyph'
-import { useAllBugCount } from '../hooks/useBugCount'
+import { useProjectsBugCount } from '../hooks/useBugCount'
 import { formatDate } from '../utils/format'
 import { NewProjectPage } from './NewProjectPage'
 
+// The overview of one organization: /organizations/:organizationId
 export function ProjectsPage() {
+  const organizationId = Number(useParams().organizationId)
+  const isValidId = Number.isInteger(organizationId) && organizationId > 0
+
+  // Same key as the sidebar's switcher, so both share one request and one cache entry
   const { data: projects, isPending, error } = useQuery({
-    queryKey: projectKeys.all,
-    queryFn: getProjects,
+    queryKey: projectKeys.ofOrganization(organizationId),
+    queryFn: () => getOrganizationProjects(organizationId),
+    enabled: isValidId, // don't call the API for URLs like /organizations/abc
   })
+
+  // A 404 means it doesn't exist or the person isn't a member: the API says the same for both
+  if (!isValidId || (error instanceof ApiError && error.status === 404)) {
+    return <OrganizationNotFound />
+  }
 
   if (isPending) {
     return <p className="page-body muted">Loading projects…</p>
@@ -43,8 +56,11 @@ function StudioOverview({ projects }: { projects: ProjectDto[] }) {
   // The projects already carry their counts, so these totals need no extra requests
   const totalBugs = projects.reduce((sum, project) => sum + project.bugCount, 0)
   const criticalCount = projects.reduce((sum, project) => sum + project.openCriticalCount, 0)
-  // "Open" is a status, and the API can count that across every project (GET /api/bugs)
-  const openBugs = useAllBugCount({ status: 'Open' })
+  // "Open" is a status: each project is asked how many it has, and they are added up
+  const openBugs = useProjectsBugCount(
+    projects.map((project) => project.id),
+    { status: 'Open' },
+  )
 
   return (
     <>

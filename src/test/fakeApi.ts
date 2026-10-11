@@ -1,4 +1,5 @@
 import { vi } from 'vitest'
+import type { OrganizationDto, ProjectDto } from '../api/types'
 
 // What a fake endpoint answers. A function can decide from the request (e.g. check the token).
 export interface FakeResponse {
@@ -66,6 +67,34 @@ export function installUnreachableApi() {
 }
 
 export const ana = { id: 'user-1', email: 'ana@test.local', displayName: 'Ana' }
+
+// Ready-made API answers, so a test only writes what matters to it
+export function organization(overrides: Partial<OrganizationDto> = {}): OrganizationDto {
+  return {
+    id: 1,
+    name: "Ana's space",
+    isDemo: false,
+    createdAt: '2026-10-01T10:00:00+00:00',
+    myRole: 'Owner',
+    memberCount: 1,
+    projectCount: 0,
+    ...overrides,
+  }
+}
+
+export function project(overrides: Partial<ProjectDto> = {}): ProjectDto {
+  return {
+    id: 1,
+    organizationId: 1,
+    name: 'Pink in the Night',
+    code: 'PIN',
+    description: null,
+    createdAt: '2026-10-02T10:00:00+00:00',
+    bugCount: 0,
+    openCriticalCount: 0,
+    ...overrides,
+  }
+}
 
 export function authResponse(token = 'token-for-ana', user = ana) {
   return { token, expiresAt: '2030-01-01T00:00:00+00:00', user }

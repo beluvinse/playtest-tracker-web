@@ -3,6 +3,7 @@ import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { bugKeys, deleteProjectBugs } from '../api/bugs'
 import { ApiError } from '../api/client'
+import { organizationKeys } from '../api/organizations'
 import { deleteProject, projectKeys } from '../api/projects'
 import type { ProjectDto } from '../api/types'
 import { ErrorMessage } from './ErrorMessage'
@@ -28,9 +29,10 @@ export function DeleteProjectButton({ project }: { project: ProjectDto }) {
     },
     onSuccess: () => {
       // Leave first (this page would refetch the project and get a 404), then clean the cache
-      navigate('/', { replace: true })
+      navigate(`/organizations/${project.organizationId}`, { replace: true })
       queryClient.removeQueries({ queryKey: projectKeys.detail(project.id) })
       queryClient.invalidateQueries({ queryKey: projectKeys.all })
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all }) // its project count changed
       queryClient.invalidateQueries({ queryKey: bugKeys.all }) // lists and counts
     },
     onError: (error, withBugs) => {

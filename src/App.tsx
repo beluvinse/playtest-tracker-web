@@ -3,6 +3,7 @@ import { AuthLayout } from './components/AuthLayout'
 import { RequireAuth } from './components/RequireAuth'
 import { ShellLayout } from './components/ShellLayout'
 import { BugPage } from './pages/BugPage'
+import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { NewBugPage } from './pages/NewBugPage'
 import { NewProjectPage } from './pages/NewProjectPage'
@@ -22,9 +23,15 @@ function App() {
       {/* Everything else needs a signed-in person, and lives inside the app's frame */}
       <Route element={<RequireAuth />}>
         <Route element={<ShellLayout />}>
-          <Route path="/" element={<ProjectsPage />} />
-          {/* A fixed segment ("new") wins over a parameter (":projectId"), whatever the order */}
-          <Route path="/projects/new" element={<NewProjectPage />} />
+          {/* "/" has nothing of its own: it sends the person to one of their organizations */}
+          <Route path="/" element={<HomePage />} />
+          {/* Like GET /api/organizations/{id}/projects: projects are listed and created inside an organization */}
+          <Route path="/organizations/:organizationId" element={<ProjectsPage />} />
+          <Route
+            path="/organizations/:organizationId/projects/new"
+            element={<NewProjectPage />}
+          />
+          {/* Once a project exists it is reached by its own id: it knows its organization */}
           <Route path="/projects/:projectId" element={<ProjectPage />} />
           {/* Like POST /api/projects/{projectId}/bugs: a new bug is created inside its project */}
           <Route path="/projects/:projectId/bugs/new" element={<NewBugPage />} />

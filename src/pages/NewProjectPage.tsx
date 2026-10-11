@@ -1,13 +1,16 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import { useNavigate } from 'react-router'
+import { useNavigate, useParams } from 'react-router'
 import { ApiError } from '../api/client'
-import { createProject, projectKeys } from '../api/projects'
+import { organizationKeys } from '../api/organizations'
+import { createOrganizationProject, projectKeys } from '../api/projects'
+import type { ProjectRequest } from '../api/types'
 import { BugArt } from '../components/BugArt'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { CodeInput } from '../components/CodeInput'
 import { FieldErrors } from '../components/FieldErrors'
+import { OrganizationNotFound } from '../components/OrganizationNotFound'
 import { useFormValidation } from '../hooks/useFormValidation'
 import { bugCode, suggestCode } from '../utils/projectCode'
 
@@ -31,13 +34,18 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
   const queryClient = useQueryClient()
   const navigate = useNavigate()
 
+  // A project is created inside an organization, and the address says which: /organizations/3/…
+  const organizationId = Number(useParams().organizationId)
+  const isValidOrganization = Number.isInteger(organizationId) && organizationId > 0
+
   // useQuery reads data; useMutation changes it (POST, PUT, PATCH, DELETE).
   // It gives us isPending and error for the request, like useQuery does.
   const mutation = useMutation({
-    mutationFn: createProject,
+    mutationFn: (project: ProjectRequest) => createOrganizationProject(organizationId, project),
     onSuccess: (project) => {
       // The cached project list is now out of date: mark it stale so it refetches
       queryClient.invalidateQueries({ queryKey: projectKeys.all })
+      queryClient.invalidateQueries({ queryKey: organizationKeys.all }) // its project count changed
       navigate(`/projects/${project.id}`)
     },
   })
@@ -63,6 +71,10 @@ export function NewProjectPage({ firstRun = false }: NewProjectPageProps) {
   const nameMessages = messagesFor('name', fieldErrors.name)
   const codeMessages = messagesFor('code', fieldErrors.code)
   const descriptionMessages = messagesFor('description', fieldErrors.description)
+
+  if (!isValidOrganization) {
+    return <OrganizationNotFound />
+  }
 
   return (
     <div className="new-project">

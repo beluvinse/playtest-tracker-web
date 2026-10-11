@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { bugKeys, getProjectBugs, searchBugs } from '../api/bugs'
+import { useQueries, useQuery } from '@tanstack/react-query'
+import { bugKeys, getProjectBugs } from '../api/bugs'
 import type { BugListParams } from '../api/types'
 
 // The API has no "counts" endpoint, so a count is a list request with pageSize 1:
@@ -20,12 +20,21 @@ export function useProjectBugCount(projectId: number, filter: BugListParams) {
   }).data
 }
 
-// How many bugs across every project match the filter (GET /api/bugs)
-export function useAllBugCount(filter: BugListParams) {
+// How many bugs match the filter across a group of projects: the sum of each one's count
+// (undefined until every project has answered). It is used for "the bugs of an organization".
+// The search across everything (GET /api/bugs) wouldn't do: it covers ALL the organizations the
+// person is in, not just the one on screen. Each count uses the same key as useProjectBugCount,
+// so a project that was already counted is not asked for again.
+export function useProjectsBugCount(projectIds: number[], filter: BugListParams) {
   const params = countParams(filter)
-  return useQuery({
-    queryKey: bugKeys.search(params),
-    queryFn: () => searchBugs(params),
-    select: (page) => page.totalCount,
-  }).data
+  const counts = useQueries({
+    queries: projectIds.map((projectId) => ({
+      queryKey: bugKeys.ofProject(projectId, params),
+      queryFn: () => getProjectBugs(projectId, params),
+      select: (page: { totalCount: number }) => page.totalCount,
+    })),
+  })
+
+  if (counts.some((count) => count.data === undefined)) return undefined
+  return counts.reduce((sum, count) => sum + (count.data ?? 0), 0)
 }

@@ -1,17 +1,28 @@
 import { useQuery } from '@tanstack/react-query'
+import { useEffect } from 'react'
 import type { ReactNode } from 'react'
 import { Link, NavLink, useMatch } from 'react-router'
 import { bugKeys, getBug } from '../api/bugs'
-import { getProjects, projectKeys } from '../api/projects'
+import { getOrganizations, organizationKeys } from '../api/organizations'
+import { getOrganizationProjects, getProject, projectKeys } from '../api/projects'
+import { getLastOrganizationId, setLastOrganizationId } from '../organizations/lastOrganization'
+import { resolveOrganizationId } from '../organizations/pickOrganization'
 import { bugCode } from '../utils/projectCode'
 import { PixelIcon } from './PixelIcon'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { UserMenu } from './UserMenu'
 
+// A number from an address segment, or undefined if it isn't a valid id ("abc", "0", "-3")
+function toId(text: string | undefined): number | undefined {
+  const id = Number(text)
+  return Number.isInteger(id) && id > 0 ? id : undefined
+}
+
 // The frame around every page: sidebar on the left, top bar, and the page itself
 export function AppShell({ children }: { children: ReactNode }) {
   // The shell sits outside <Routes>, so it can't use useParams; useMatch reads the URL directly.
-  // "/*" also matches deeper pages of a project, like /projects/5/bugs/new.
+  // "/*" also matches deeper pages, like /projects/5/bugs/new.
+  const organizationMatch = useMatch('/organizations/:organizationId/*')
   const projectMatch = useMatch('/projects/:projectId/*')
   const bugMatch = useMatch('/bugs/:bugId')
   const bugId = Number(bugMatch?.params.bugId)
@@ -23,10 +34,40 @@ export function AppShell({ children }: { children: ReactNode }) {
     enabled: Number.isInteger(bugId) && bugId > 0,
   })
   const currentBug = bugMatch ? bugQuery.data : undefined
-  const projectId = currentBug ? currentBug.projectId : Number(projectMatch?.params.projectId)
+  const projectId = toId(currentBug ? String(currentBug.projectId) : projectMatch?.params.projectId)
 
-  // Same key as the projects page, so both share one request and one cache entry
-  const projectsQuery = useQuery({ queryKey: projectKeys.all, queryFn: getProjects })
+  // The project says which organization it belongs to. Same key as ProjectPage: one request.
+  const projectQuery = useQuery({
+    queryKey: projectKeys.detail(projectId ?? 0),
+    queryFn: () => getProject(projectId!),
+    enabled: projectId !== undefined,
+  })
+
+  // The organizations of the person. It also tells whether the API is answering (see ApiStatus).
+  const organizationsQuery = useQuery({ queryKey: organizationKeys.all, queryFn: getOrganizations })
+  const organizations = organizationsQuery.data ?? []
+
+  // Which organization we are "in": see resolveOrganizationId
+  const organizationId = resolveOrganizationId({
+    fromAddress: toId(organizationMatch?.params.organizationId),
+    insideAProject: projectMatch !== null || bugMatch !== null,
+    ofTheProject: projectQuery.data?.organizationId,
+    lastUsed: getLastOrganizationId(),
+  })
+
+  // Remember it, so the app opens there next time. Only if it really is one of theirs: an
+  // address like /organizations/999 must not become "the last one".
+  const isMine = organizations.some((organization) => organization.id === organizationId)
+  useEffect(() => {
+    if (organizationId !== undefined && isMine) setLastOrganizationId(organizationId)
+  }, [organizationId, isMine])
+
+  // The projects of that organization. Same key as the overview page, so both share one request.
+  const projectsQuery = useQuery({
+    queryKey: projectKeys.ofOrganization(organizationId ?? 0),
+    queryFn: () => getOrganizationProjects(organizationId!),
+    enabled: organizationId !== undefined,
+  })
   const projects = projectsQuery.data ?? []
   const currentProject = projects.find((project) => project.id === projectId)
 
@@ -41,8 +82,12 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // What the breadcrumb shows when no project is selected
   const isNewProject =
-    useMatch('/projects/new') !== null || (projectsQuery.isSuccess && projects.length === 0)
+    useMatch('/organizations/:organizationId/projects/new') !== null ||
+    (projectsQuery.isSuccess && projects.length === 0)
   const pageLabel = isNewProject ? 'new project' : projectMatch ? 'project' : 'all projects'
+
+  // Where "Overview" leads: the organization we are in (or "/", which finds one)
+  const overviewPath = organizationId === undefined ? '/' : `/organizations/${organizationId}`
 
   return (
     <div className="shell">
@@ -63,12 +108,16 @@ export function AppShell({ children }: { children: ReactNode }) {
             </span>
           </div>
         ) : (
-          <ProjectSwitcher projects={projects} current={currentProject} />
+          <ProjectSwitcher
+            projects={projects}
+            current={currentProject}
+            organizationId={organizationId}
+          />
         )}
 
         <nav className="sidebar-nav" aria-label="Main">
-          {/* end: "/" is only active on the home page, not on every page that starts with "/" */}
-          <NavLink to="/" end className="nav-item">
+          {/* end: the overview is only active on its own page, not on every page that starts with it */}
+          <NavLink to={overviewPath} end className="nav-item">
             <PixelIcon name="grid" />
             Overview
           </NavLink>
@@ -81,7 +130,10 @@ export function AppShell({ children }: { children: ReactNode }) {
           )}
         </nav>
 
-        <ApiStatus isOnline={projectsQuery.isSuccess} isChecking={projectsQuery.isPending} />
+        <ApiStatus
+          isOnline={organizationsQuery.isSuccess}
+          isChecking={organizationsQuery.isPending}
+        />
       </aside>
 
       <div className="shell-main">
@@ -89,7 +141,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <nav aria-label="Location" className="breadcrumb">
             {currentProject ? (
               <>
-                <Link to="/">studio</Link>
+                <Link to={overviewPath}>studio</Link>
                 <span className="breadcrumb-sep">/</span>
                 {/* A link back to the project, except on the project page itself */}
                 {currentBug || isNewBug ? (

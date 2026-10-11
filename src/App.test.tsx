@@ -13,12 +13,12 @@ describe('the door of the app', () => {
       renderApp('/')
 
       await heading('Sign in')
-      expect(api.count('GET /api/projects')).toBe(0)
+      expect(api.count('GET /api/organizations')).toBe(0)
     })
 
     it('is sent back to the page they wanted once they sign in', async () => {
       installFakeApi(apiRoutes)
-      renderApp('/projects/new') // a page deep inside the app
+      renderApp('/organizations/1/projects/new') // a page deep inside the app
 
       await heading('Sign in')
       await fillSignIn()
@@ -29,7 +29,7 @@ describe('the door of the app', () => {
 
     it('still gets sent back there if they decide to create an account instead', async () => {
       installFakeApi(apiRoutes)
-      renderApp('/projects/new')
+      renderApp('/organizations/1/projects/new')
 
       await heading('Sign in')
       fireEvent.click(screen.getByRole('link', { name: 'Create an account' }))
@@ -89,7 +89,7 @@ describe('the door of the app', () => {
       installFakeApi(apiRoutes)
       setToken('a-token-that-expired')
 
-      renderApp('/projects/new')
+      renderApp('/organizations/1/projects/new')
 
       await heading('Sign in')
       expect(getToken()).toBeNull()
@@ -128,7 +128,7 @@ describe('the door of the app', () => {
       'GET /api/bugs/1': { status: 401 }, // e.g. the token expired while they were working
     })
     setToken('token-for-ana')
-    renderApp('/projects/new')
+    renderApp('/organizations/1/projects/new')
     await heading('New project')
 
     await act(() => apiRequest('/api/bugs/1').catch(() => undefined))
