@@ -8,6 +8,7 @@ import { getOrganizationProjects, getProject, projectKeys } from '../api/project
 import { getLastOrganizationId, setLastOrganizationId } from '../organizations/lastOrganization'
 import { resolveOrganizationId } from '../organizations/pickOrganization'
 import { bugCode } from '../utils/projectCode'
+import { OrganizationSwitcher } from './OrganizationSwitcher'
 import { PixelIcon } from './PixelIcon'
 import { ProjectSwitcher } from './ProjectSwitcher'
 import { UserMenu } from './UserMenu'
@@ -97,6 +98,13 @@ export function AppShell({ children }: { children: ReactNode }) {
           <span className="wordmark-text">Playtest</span>
           <span className="wordmark-tag">qa</span>
         </Link>
+
+        {/* Which organization we are in. The project switcher below shows ITS projects. */}
+        <OrganizationSwitcher
+          organizations={organizations}
+          current={organizations.find((organization) => organization.id === organizationId)}
+          isLoading={organizationsQuery.isPending}
+        />
 
         {/* With no projects there is nothing to switch to: show a placeholder instead */}
         {projectsQuery.isSuccess && projects.length === 0 ? (

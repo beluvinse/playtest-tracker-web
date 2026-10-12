@@ -191,6 +191,52 @@ describe('the organization in the address', () => {
     })
   })
 
+  describe('the organization switcher in the sidebar', () => {
+    it('shows the organization she is in, and its projects below', async () => {
+      signedInWithTwoOrganizations({
+        'GET /api/projects/5/bugs': bugsPage(0),
+        'GET /api/projects/6/bugs': bugsPage(0),
+      })
+
+      renderApp('/organizations/2')
+      await heading(/2 games in development/)
+
+      const box = screen.getByTitle('Switch organization')
+      expect(within(box).getByText('Night Owls')).toBeTruthy()
+    })
+
+    it('switches to another organization, and the sidebar and the page follow', async () => {
+      const api = signedInWithTwoOrganizations({
+        'GET /api/projects/5/bugs': bugsPage(0),
+        'GET /api/projects/6/bugs': bugsPage(0),
+      })
+      renderApp('/organizations/2')
+      await heading(/2 games in development/)
+
+      fireEvent.click(screen.getByRole('link', { name: /Ana's space/ }))
+
+      await heading('Press start') // her personal organization has no projects
+      expect(
+        within(screen.getByTitle('Switch organization')).getByText("Ana's space"),
+      ).toBeTruthy()
+      expect(api.count('GET /api/organizations/1/projects')).toBeGreaterThan(0)
+    })
+
+    it('keeps showing the organization of a project when she is inside it', async () => {
+      signedInWithTwoOrganizations({
+        'GET /api/projects/5': { status: 200, body: pink },
+        'GET /api/projects/5/bugs': bugsPage(0),
+      })
+
+      renderApp('/projects/5')
+      await heading('Pink in the Night')
+
+      await waitFor(() =>
+        expect(within(screen.getByTitle('Switch organization')).getByText('Night Owls')).toBeTruthy(),
+      )
+    })
+  })
+
   describe('remembering the organization', () => {
     it('saves the one the person is working in, so the app opens there next time', async () => {
       signedInWithTwoOrganizations()

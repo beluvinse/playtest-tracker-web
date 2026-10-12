@@ -205,6 +205,12 @@ h2 {
   margin: 12px 12px 6px;
 }
 
+/* With two switchers stacked, the one below would paint over the menu of the one above.
+   The one that is open goes on top. */
+.switcher[open] {
+  z-index: 3;
+}
+
 .switcher-current {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr) 10px;
@@ -324,6 +330,26 @@ h2 {
   width: 20px;
   height: 20px;
   border: 2px dashed var(--line-strong);
+}
+
+/* ---- Organization switcher ---- */
+
+/* The same box as the project switcher, stacked above it: it only needs a tighter gap below */
+.org-switcher {
+  margin-bottom: 0;
+}
+
+/* "example" next to the demo organization: tells it apart from the ones that are the person's own */
+.org-tag {
+  margin-left: 6px;
+  padding: 0 5px;
+  border: 1px solid var(--line-strong);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  vertical-align: middle;
 }
 
 /* ---- Navigation ---- */
