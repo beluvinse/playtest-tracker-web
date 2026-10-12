@@ -5,6 +5,7 @@ import { ShellLayout } from './components/ShellLayout'
 import { BugPage } from './pages/BugPage'
 import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
+import { MembersPage } from './pages/MembersPage'
 import { NewBugPage } from './pages/NewBugPage'
 import { NewProjectPage } from './pages/NewProjectPage'
 import { ProjectPage } from './pages/ProjectPage'
@@ -31,6 +32,7 @@ function App() {
             path="/organizations/:organizationId/projects/new"
             element={<NewProjectPage />}
           />
+          <Route path="/organizations/:organizationId/members" element={<MembersPage />} />
           {/* Once a project exists it is reached by its own id: it knows its organization */}
           <Route path="/projects/:projectId" element={<ProjectPage />} />
           {/* Like POST /api/projects/{projectId}/bugs: a new bug is created inside its project */}

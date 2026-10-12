@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { OrganizationDto, ProjectDto } from '../api/types'
+import type { MemberDto, OrganizationDto, ProjectDto } from '../api/types'
 
 // What a fake endpoint answers. A function can decide from the request (e.g. check the token).
 export interface FakeResponse {
@@ -78,6 +78,17 @@ export function organization(overrides: Partial<OrganizationDto> = {}): Organiza
     myRole: 'Owner',
     memberCount: 1,
     projectCount: 0,
+    ...overrides,
+  }
+}
+
+export function member(overrides: Partial<MemberDto> = {}): MemberDto {
+  return {
+    userId: 'user-1',
+    displayName: 'Ana',
+    email: 'ana@test.local',
+    role: 'Member',
+    joinedAt: '2026-10-03T10:00:00+00:00',
     ...overrides,
   }
 }

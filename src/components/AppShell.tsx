@@ -56,6 +56,8 @@ export function AppShell({ children }: { children: ReactNode }) {
     lastUsed: getLastOrganizationId(),
   })
 
+  const currentOrganization = organizations.find((organization) => organization.id === organizationId)
+
   // Remember it, so the app opens there next time. Only if it really is one of theirs: an
   // address like /organizations/999 must not become "the last one".
   const isMine = organizations.some((organization) => organization.id === organizationId)
@@ -82,10 +84,17 @@ export function AppShell({ children }: { children: ReactNode }) {
         : 'bugs'
 
   // What the breadcrumb shows when no project is selected
+  const isMembers = useMatch('/organizations/:organizationId/members') !== null
   const isNewProject =
     useMatch('/organizations/:organizationId/projects/new') !== null ||
     (projectsQuery.isSuccess && projects.length === 0)
-  const pageLabel = isNewProject ? 'new project' : projectMatch ? 'project' : 'all projects'
+  const pageLabel = isMembers
+    ? 'people'
+    : isNewProject
+      ? 'new project'
+      : projectMatch
+        ? 'project'
+        : 'all projects'
 
   // Where "Overview" leads: the organization we are in (or "/", which finds one)
   const overviewPath = organizationId === undefined ? '/' : `/organizations/${organizationId}`
@@ -102,7 +111,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         {/* Which organization we are in. The project switcher below shows ITS projects. */}
         <OrganizationSwitcher
           organizations={organizations}
-          current={organizations.find((organization) => organization.id === organizationId)}
+          current={currentOrganization}
           isLoading={organizationsQuery.isPending}
         />
 
@@ -134,6 +143,14 @@ export function AppShell({ children }: { children: ReactNode }) {
               <PixelIcon name="bug" />
               Bugs
               <span className="nav-count">{currentProject.bugCount}</span>
+            </NavLink>
+          )}
+          {/* The people of the organization we are in (only when it is one of theirs) */}
+          {currentOrganization && (
+            <NavLink to={`/organizations/${currentOrganization.id}/members`} className="nav-item">
+              <PixelIcon name="team" />
+              People
+              <span className="nav-count">{currentOrganization.memberCount}</span>
             </NavLink>
           )}
         </nav>
