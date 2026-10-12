@@ -726,6 +726,35 @@ a.project-row .col-created {
   flex-direction: column;
 }
 
+/* "Add someone by email": the field and its button on one line */
+.member-add {
+  padding: 16px 32px;
+  border-bottom: 1px solid var(--line-rule);
+}
+
+.member-add-form {
+  max-width: 560px;
+}
+
+.member-add-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
+}
+
+.member-add-row .form-field {
+  flex: 1;
+}
+
+/* Why there is no form: you are not the owner, or this is the example organization */
+.member-note {
+  margin: 0;
+  padding: 14px 32px;
+  border-bottom: 1px solid var(--line-rule);
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
 .member-name {
   font-weight: 600;
   white-space: nowrap;
@@ -776,6 +805,12 @@ a.project-row .col-created {
 }
 
 @media (max-width: 760px) {
+  .member-add,
+  .member-note {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+
   .member-row {
     grid-template-columns: 32px minmax(0, 1fr) auto;
     padding: 0 16px;

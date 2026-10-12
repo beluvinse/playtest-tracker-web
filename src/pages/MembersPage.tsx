@@ -3,6 +3,7 @@ import { useParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { getMembers, getOrganizations, organizationKeys } from '../api/organizations'
 import { useAuth } from '../auth/useAuth'
+import { AddMemberForm } from '../components/AddMemberForm'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { OrganizationNotFound } from '../components/OrganizationNotFound'
 import { RoleBadge } from '../components/RoleBadge'
@@ -46,6 +47,8 @@ export function MembersPage() {
     return <p className="page-body muted">Loading people…</p>
   }
 
+  const ownerName = members.find((member) => member.role === 'Owner')?.displayName
+
   return (
     <>
       <section className="page-band" aria-label="People in this organization">
@@ -60,6 +63,19 @@ export function MembersPage() {
           Everybody here can see this organization's projects and bugs, and report and edit them.
         </p>
       </section>
+
+      {/* Who can add people: only the Owner, and never in the example organization */}
+      {organization?.isDemo ? (
+        <p className="member-note">
+          This is an example organization: its people are fixed, so nobody can be added or removed.
+        </p>
+      ) : organization?.myRole === 'Owner' ? (
+        <AddMemberForm organizationId={organizationId} />
+      ) : organization ? (
+        <p className="member-note">
+          Only the owner{ownerName ? ` (${ownerName})` : ''} can add people to this organization.
+        </p>
+      ) : null}
 
       <ul className="member-rows">
         {members.map((member) => (
