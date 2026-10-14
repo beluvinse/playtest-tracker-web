@@ -712,7 +712,7 @@ a.project-row .col-created {
 
 .member-row {
   display: grid;
-  grid-template-columns: 32px minmax(0, 1fr) 80px 150px;
+  grid-template-columns: 32px minmax(0, 1fr) 80px 150px 76px;
   column-gap: 16px;
   align-items: center;
   min-height: 60px;
@@ -787,6 +787,12 @@ a.project-row .col-created {
   text-align: right;
 }
 
+/* "Remove" / "Leave": the column keeps its width even when a row has nothing to show */
+.member-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
 /* OWNER / MEMBER */
 .role-badge {
   justify-self: start;
@@ -812,7 +818,8 @@ a.project-row .col-created {
   }
 
   .member-row {
-    grid-template-columns: 32px minmax(0, 1fr) auto;
+    grid-template-columns: 32px minmax(0, 1fr) auto auto;
+    column-gap: 12px;
     padding: 0 16px;
   }
 

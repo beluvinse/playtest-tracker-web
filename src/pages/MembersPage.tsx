@@ -6,6 +6,7 @@ import { useAuth } from '../auth/useAuth'
 import { AddMemberForm } from '../components/AddMemberForm'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { OrganizationNotFound } from '../components/OrganizationNotFound'
+import { RemoveMemberButton } from '../components/RemoveMemberButton'
 import { RoleBadge } from '../components/RoleBadge'
 import { UserAvatar } from '../components/UserAvatar'
 import { formatDate } from '../utils/format'
@@ -78,20 +79,36 @@ export function MembersPage() {
       ) : null}
 
       <ul className="member-rows">
-        {members.map((member) => (
-          <li key={member.userId} className="member-row">
-            <UserAvatar userId={member.userId} size={32} />
-            <span className="member-who">
-              <span className="member-name">
-                {member.displayName}
-                {member.userId === user?.id && <span className="member-you">you</span>}
+        {members.map((member) => {
+          const isMe = member.userId === user?.id
+
+          // Who can take whom out: the Owner removes any Member, and anybody can leave on their
+          // own. The Owner can't go (an organization always has its owner), and in the example
+          // organization nobody can.
+          const canRemove =
+            organization !== undefined &&
+            !organization.isDemo &&
+            member.role !== 'Owner' &&
+            (organization.myRole === 'Owner' || isMe)
+
+          return (
+            <li key={member.userId} className="member-row">
+              <UserAvatar userId={member.userId} size={32} />
+              <span className="member-who">
+                <span className="member-name">
+                  {member.displayName}
+                  {isMe && <span className="member-you">you</span>}
+                </span>
+                <span className="member-email">{member.email}</span>
               </span>
-              <span className="member-email">{member.email}</span>
-            </span>
-            <RoleBadge role={member.role} />
-            <span className="member-joined">joined {formatDate(member.joinedAt)}</span>
-          </li>
-        ))}
+              <RoleBadge role={member.role} />
+              <span className="member-joined">joined {formatDate(member.joinedAt)}</span>
+              <span className="member-actions">
+                {canRemove && <RemoveMemberButton organization={organization} member={member} isMe={isMe} />}
+              </span>
+            </li>
+          )
+        })}
       </ul>
     </>
   )
