@@ -1,0 +1,57 @@
+# CI (continuous integration): a robot on GitHub that, on every push, checks the frontend on a
+# clean machine: the linter, the tests and the build. If anything fails, GitHub shows a red cross
+# next to the commit (or the pull request) and says which step broke.
+name: CI
+
+# WHEN it runs
+on:
+  push:
+    branches: [main]   # every time something lands on main
+  pull_request:        # and on every pull request, before it is merged
+
+# What the robot is allowed to do with the repository: only read it (the least it needs)
+permissions:
+  contents: read
+
+jobs:
+  check:
+    name: Lint, test and build
+    runs-on: ubuntu-latest   # a fresh Linux machine, thrown away when the job ends
+    timeout-minutes: 10      # if something hangs, it stops instead of waiting for hours
+
+    steps:
+      # 1. Download the code of this commit onto the machine
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      # 2. Install Node (the program that runs the tools: vite, vitest, the linter…).
+      #    "cache: npm" keeps the downloaded packages between runs, so the next run is faster.
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # 3. Install the packages in package.json. "npm ci" (unlike "npm install") installs EXACTLY
+      #    what package-lock.json says and fails if the two disagree: the same versions as on
+      #    your computer, every time.
+      - name: Install packages
+        run: npm ci
+
+      # 4. The linter: looks for mistakes and suspicious code without running anything
+      - name: Lint
+        run: npm run lint
+
+      # 5. All the tests (they use a fake API: nothing is called over the network)
+      - name: Test
+        run: npm test
+
+      # 6. Build the app, as it would be shipped: first TypeScript checks every type
+      #    (tsc), then vite writes the final files into dist/.
+      #    VITE_API_URL is read while building: the app needs to know where the API lives.
+      #    Here it is only a stand-in to prove the build works; the real address will be set
+      #    when the app is deployed.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: https://api.example.test

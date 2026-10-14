@@ -1,5 +1,7 @@
 # playtest-tracker-web
 
+[![CI](https://github.com/beluvinse/playtest-tracker-web/actions/workflows/ci.yml/badge.svg)](https://github.com/beluvinse/playtest-tracker-web/actions/workflows/ci.yml)
+
 Frontend for [PlaytestTracker.Api](https://github.com/beluvinse/playtest-tracker-api): a web app to browse projects and manage the bugs found during game playtests.
 
 Built with React, TypeScript and Vite.
