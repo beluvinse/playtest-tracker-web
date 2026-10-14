@@ -9,6 +9,7 @@ import { MembersPage } from './pages/MembersPage'
 import { NewBugPage } from './pages/NewBugPage'
 import { NewOrganizationPage } from './pages/NewOrganizationPage'
 import { NewProjectPage } from './pages/NewProjectPage'
+import { OrganizationSettingsPage } from './pages/OrganizationSettingsPage'
 import { ProjectPage } from './pages/ProjectPage'
 import { ProjectsPage } from './pages/ProjectsPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -36,6 +37,10 @@ function App() {
             element={<NewProjectPage />}
           />
           <Route path="/organizations/:organizationId/members" element={<MembersPage />} />
+          <Route
+            path="/organizations/:organizationId/settings"
+            element={<OrganizationSettingsPage />}
+          />
           {/* Once a project exists it is reached by its own id: it knows its organization */}
           <Route path="/projects/:projectId" element={<ProjectPage />} />
           {/* Like POST /api/projects/{projectId}/bugs: a new bug is created inside its project */}

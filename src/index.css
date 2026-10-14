@@ -727,12 +727,14 @@ a.project-row .col-created {
 }
 
 /* "Add someone by email": the field and its button on one line */
-.member-add {
+.member-add,
+.settings-section {
   padding: 16px 32px;
   border-bottom: 1px solid var(--line-rule);
 }
 
-.member-add-form {
+.member-add-form,
+.settings-form {
   max-width: 560px;
 }
 
@@ -812,6 +814,7 @@ a.project-row .col-created {
 
 @media (max-width: 760px) {
   .member-add,
+  .settings-section,
   .member-note {
     padding-left: 16px;
     padding-right: 16px;

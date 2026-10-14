@@ -85,12 +85,15 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // What the breadcrumb shows when no project is selected
   const isMembers = useMatch('/organizations/:organizationId/members') !== null
+  const isSettings = useMatch('/organizations/:organizationId/settings') !== null
   const isNewOrganization = useMatch('/organizations/new') !== null
   const isNewProject =
     useMatch('/organizations/:organizationId/projects/new') !== null ||
     (projectsQuery.isSuccess && projects.length === 0)
   const pageLabel = isNewOrganization
     ? 'new organization'
+    : isSettings
+    ? 'settings'
     : isMembers
     ? 'people'
     : isNewProject
@@ -154,6 +157,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <PixelIcon name="team" />
               People
               <span className="nav-count">{currentOrganization.memberCount}</span>
+            </NavLink>
+          )}
+          {/* Settings are only for the Owner, and the example organization has none to change */}
+          {currentOrganization && currentOrganization.myRole === 'Owner' && !currentOrganization.isDemo && (
+            <NavLink to={`/organizations/${currentOrganization.id}/settings`} className="nav-item">
+              <PixelIcon name="sliders" />
+              Settings
             </NavLink>
           )}
         </nav>

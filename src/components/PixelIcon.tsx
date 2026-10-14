@@ -9,6 +9,8 @@ const icons = {
   grid: { size: 8, path: 'M0 0h3v3h-3zM5 0h3v3h-3zM0 5h3v3h-3zM5 5h3v3h-3z' },
   // Two people side by side: for organizations
   team: { size: 8, path: 'M1 1h2v2h-2zM0 3h4v3h-4zM5 1h2v2h-2zM4 3h4v3h-4zM1 6h1v2h-1zM6 6h1v2h-1z' },
+  // Three sliders: for settings
+  sliders: { size: 8, path: 'M0 1h8v1h-8zM5 0h2v3h-2zM0 4h8v1h-8zM1 3h2v3h-2zM0 7h8v1h-8zM4 6h2v2h-2z' },
   plus: { size: 8, path: 'M3 0h2v3h3v2h-3v3h-2v-3h-3v-2h3z' },
   chevronDown: { size: 4, path: 'M0 1h4v1h-4zM1 2h2v1h-2z' },
   check: { size: 4, path: 'M0 2h1v1h-1zM1 3h1v1h-1zM2 2h1v1h-1zM3 1h1v1h-1z' },
