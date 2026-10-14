@@ -6,6 +6,20 @@ Frontend for [PlaytestTracker.Api](https://github.com/beluvinse/playtest-tracker
 
 Built with React, TypeScript and Vite.
 
+## Live demo
+
+**https://beluvinse.github.io/playtest-tracker-web/**
+
+The login page has a panel with demo accounts: pick one to look around an example studio without creating an account.
+
+> The API runs on a free plan that goes to sleep after 15 minutes without visits. If nobody has opened the app for a while, the first request can take about a minute while it wakes up. After that it answers normally.
+
+| Piece | Where it runs |
+| --- | --- |
+| This frontend | GitHub Pages (static files) |
+| [The API](https://github.com/beluvinse/playtest-tracker-api) | Render (Docker container) |
+| Database | Neon (PostgreSQL) |
+
 ## Getting started
 
 **Requirements**
