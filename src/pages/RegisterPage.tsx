@@ -6,6 +6,8 @@ import { ApiError } from '../api/client'
 import { BugArt } from '../components/BugArt'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
+import { PixelIcon } from '../components/PixelIcon'
+import { useDemoInfo } from '../hooks/useDemoInfo'
 import { useFormValidation } from '../hooks/useFormValidation'
 import { getRedirectTarget } from '../auth/redirect'
 import { useAuth } from '../auth/useAuth'
@@ -29,6 +31,9 @@ export function RegisterPage() {
     // The account comes already signed in, so the person goes straight into the app
     onSuccess: () => navigate(getRedirectTarget(location.state), { replace: true }),
   })
+
+  // The example organization, if there is one: everybody who signs up also joins it
+  const demo = useDemoInfo()
 
   const { validate, forgetError, messagesFor } = useFormValidation()
 
@@ -132,6 +137,19 @@ export function RegisterPage() {
           </button>
         </div>
       </form>
+
+      {/* Everybody who signs up also joins the example organization: better to say so before than
+          to let it surprise them afterwards. Nothing is said if there is no demo. */}
+      {demo && (
+        <p className="demo-note">
+          <PixelIcon name="team" size={12} />
+          <span>
+            You will also join <strong>{demo.organizationName}</strong>, an example organization
+            anybody can look around in. Everything in it is shared with the others who try the app, and
+            you can't leave it. Your own organization is created for you too.
+          </span>
+        </p>
+      )}
 
       <p className="auth-switch">
         Already have an account?{' '}
