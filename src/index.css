@@ -1971,6 +1971,60 @@ a.button-primary:hover {
   color: var(--text-muted);
 }
 
+/* "Just looking around?": the demo accounts, one click each */
+.demo-panel {
+  padding: 16px;
+  border: 1px dashed var(--line-strong);
+  background: var(--surface-chrome);
+}
+
+.demo-title {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.demo-text {
+  margin: 4px 0 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.demo-accounts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.demo-account {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr) auto auto;
+  column-gap: 10px;
+  align-items: center;
+  padding: 8px 0;
+  border-top: 1px solid var(--line-row);
+}
+
+.demo-who {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.demo-name {
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.demo-email {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .auth-footer {
   font-family: var(--font-mono);
   font-size: 11px;

@@ -2,9 +2,12 @@ import { useMutation } from '@tanstack/react-query'
 import { useState } from 'react'
 import type { FormEvent } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
+import type { DemoAccountDto } from '../api/types'
 import { BugArt } from '../components/BugArt'
+import { DemoAccounts } from '../components/DemoAccounts'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
+import { useDemoInfo } from '../hooks/useDemoInfo'
 import { useFormValidation } from '../hooks/useFormValidation'
 import { getRedirectTarget } from '../auth/redirect'
 import { useAuth } from '../auth/useAuth'
@@ -21,6 +24,12 @@ export function LoginPage() {
     // Back to the page the person was trying to open (or the home page)
     onSuccess: () => navigate(getRedirectTarget(location.state), { replace: true }),
   })
+
+  // The demo accounts, if there is a demo: the same sign-in, with the account chosen by a click
+  const demo = useDemoInfo()
+  function enterDemo(account: DemoAccountDto) {
+    if (demo) mutation.mutate({ email: account.email, password: demo.password })
+  }
 
   const { validate, forgetError, messagesFor } = useFormValidation()
   const emailMessages = messagesFor('email', undefined)
@@ -104,6 +113,8 @@ export function LoginPage() {
           Create an account
         </Link>
       </p>
+
+      {demo && <DemoAccounts info={demo} onEnter={enterDemo} disabled={mutation.isPending} />}
     </>
   )
 }

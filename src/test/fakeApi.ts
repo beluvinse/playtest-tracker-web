@@ -1,5 +1,5 @@
 import { vi } from 'vitest'
-import type { MemberDto, OrganizationDto, ProjectDto } from '../api/types'
+import type { DemoInfoDto, MemberDto, OrganizationDto, ProjectDto } from '../api/types'
 
 // What a fake endpoint answers. A function can decide from the request (e.g. check the token).
 export interface FakeResponse {
@@ -84,6 +84,20 @@ export function organization(overrides: Partial<OrganizationDto> = {}): Organiza
     myRole: 'Owner',
     memberCount: 1,
     projectCount: 0,
+    ...overrides,
+  }
+}
+
+// What GET /api/demo answers: an Owner and two Members of the example organization
+export function demoInfo(overrides: Partial<DemoInfoDto> = {}): DemoInfoDto {
+  return {
+    organizationName: 'Pink in the Night Studio',
+    password: 'Playtest-demo-1',
+    accounts: [
+      { email: 'luna@demo.test', displayName: 'Luna Park', role: 'Owner' },
+      { email: 'theo@demo.test', displayName: 'Theo Vance', role: 'Member' },
+      { email: 'iris@demo.test', displayName: 'Iris Okoye', role: 'Member' },
+    ],
     ...overrides,
   }
 }
