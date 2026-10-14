@@ -10,6 +10,7 @@ import { ErrorMessage } from '../components/ErrorMessage'
 import { PixelIcon } from '../components/PixelIcon'
 import { ProjectEditForm } from '../components/ProjectEditForm'
 import { useProjectBugCount } from '../hooks/useBugCount'
+import { useOrganizationRole } from '../hooks/useOrganizationRole'
 import { formatDate } from '../utils/format'
 
 export function ProjectPage() {
@@ -52,6 +53,9 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
   // Reading or editing, like on the bug page
   const [isEditing, setIsEditing] = useState(false)
 
+  // What the person is in the organization this project belongs to
+  const role = useOrganizationRole(project.organizationId)
+
   return (
     <header className="band-header">
       <div className="band-eyebrow">
@@ -68,7 +72,9 @@ function ProjectHeader({ project }: { project: ProjectDto }) {
               <button type="button" className="button-ghost" onClick={() => setIsEditing(true)}>
                 Edit
               </button>
-              <DeleteProjectButton project={project} />
+              {/* Only the Owner of the organization can delete one of its projects: a Member
+                  would only get a 403, so the button isn't offered */}
+              {role === 'Owner' && <DeleteProjectButton project={project} />}
               <Link
                 to={`/projects/${project.id}/bugs/new`}
                 className="button-primary button-small"
