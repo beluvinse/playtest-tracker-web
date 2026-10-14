@@ -11,6 +11,7 @@ import { useDemoInfo } from '../hooks/useDemoInfo'
 import { useFormValidation } from '../hooks/useFormValidation'
 import { getRedirectTarget } from '../auth/redirect'
 import { useAuth } from '../auth/useAuth'
+import { setLastOrganizationId } from '../organizations/lastOrganization'
 
 export function LoginPage() {
   const { login } = useAuth()
@@ -28,7 +29,14 @@ export function LoginPage() {
   // The demo accounts, if there is a demo: the same sign-in, with the account chosen by a click
   const demo = useDemoInfo()
   function enterDemo(account: DemoAccountDto) {
-    if (demo) mutation.mutate({ email: account.email, password: demo.password })
+    if (!demo) return
+
+    // Whoever comes to try the demo wants to see the example organization, not their own (empty)
+    // one. Marking it as "the last one used" is what makes "/" open it once they are in. It has
+    // to be before signing in: the app starts moving as soon as the sign-in works.
+    setLastOrganizationId(demo.organizationId)
+
+    mutation.mutate({ email: account.email, password: demo.password })
   }
 
   const { validate, forgetError, messagesFor } = useFormValidation()

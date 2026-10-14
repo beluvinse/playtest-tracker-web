@@ -146,6 +146,7 @@ export interface DemoAccountDto {
 // GET /api/demo (public, no token): the demo accounts and the password they all share.
 // Public on purpose, so the sign-in page can offer them.
 export interface DemoInfoDto {
+  organizationId: number // the example organization itself: where the demo accounts are taken to
   organizationName: string
   password: string
   accounts: DemoAccountDto[]

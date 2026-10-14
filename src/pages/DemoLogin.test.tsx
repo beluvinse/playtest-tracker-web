@@ -1,7 +1,8 @@
 import { screen, within, fireEvent, waitFor } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { getToken } from '../auth/tokenStorage'
-import { afterAWhile, authResponse, demoInfo, installFakeApi } from '../test/fakeApi'
+import { getLastOrganizationId } from '../organizations/lastOrganization'
+import { afterAWhile, authResponse, demoInfo, installFakeApi, organization, project } from '../test/fakeApi'
 import { apiRoutes, heading, renderApp } from '../test/renderApp'
 
 function withDemo(extra: Parameters<typeof installFakeApi>[0] = {}) {
@@ -9,6 +10,32 @@ function withDemo(extra: Parameters<typeof installFakeApi>[0] = {}) {
     ...apiRoutes,
     'GET /api/demo': { status: 200, body: demoInfo() },
     ...extra,
+  })
+}
+
+// A demo account has its own organization (1, empty) and the example one (3, with two projects).
+// The API lists the personal one first, like the real one does.
+const personal = organization({ id: 1, name: "Luna Park's space", myRole: 'Owner', projectCount: 0 })
+const exampleOrganization = organization({
+  id: 3,
+  name: 'Pink in the Night Studio',
+  isDemo: true,
+  myRole: 'Member',
+  projectCount: 2,
+})
+const exampleProjects = [
+  project({ id: 1, organizationId: 3, name: 'Pink in the Night', code: 'PIN' }),
+  project({ id: 2, organizationId: 3, name: 'Neon Drifters', code: 'NEO' }),
+]
+const bugCount = { status: 200, body: { items: [], page: 1, pageSize: 1, totalCount: 0 } }
+
+function withDemoAccounts() {
+  return withDemo({
+    'GET /api/organizations': { status: 200, body: [personal, exampleOrganization] },
+    'GET /api/organizations/1/projects': { status: 200, body: [] },
+    'GET /api/organizations/3/projects': { status: 200, body: exampleProjects },
+    'GET /api/projects/1/bugs': bugCount,
+    'GET /api/projects/2/bugs': bugCount,
   })
 }
 
@@ -138,6 +165,46 @@ describe('the demo on the sign-in page', () => {
       fireEvent.click(screen.getByRole('button', { name: 'Enter as Theo Vance' }))
       await heading('Press start')
       expect(api.count('POST /api/auth/login')).toBe(1)
+    })
+
+    it('lands in the example organization, with its projects, not in the account\'s own empty one', async () => {
+      const api = withDemoAccounts()
+      renderApp('/login')
+      await heading('Sign in')
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Enter as Theo Vance' }))
+
+      // The example organization has two projects: its overview. Her own has none ("Press start").
+      await heading(/2 games in development/)
+      expect(api.count('GET /api/organizations/3/projects')).toBeGreaterThan(0)
+      expect(api.count('GET /api/organizations/1/projects')).toBe(0)
+      const box = screen.getByTitle('Switch organization')
+      expect(within(box).getByText('Pink in the Night Studio')).toBeTruthy()
+    })
+
+    it('marks the example organization as the last one used, before signing in', async () => {
+      withDemoAccounts()
+      renderApp('/login')
+      await heading('Sign in')
+
+      fireEvent.click(await screen.findByRole('button', { name: 'Enter as Luna Park' }))
+      // (synchronously: it can't wait for the sign-in, which starts moving the app as soon as it works)
+      expect(getLastOrganizationId()).toBe(3)
+      await heading(/2 games in development/)
+    })
+
+    it('does not change where the form takes someone: their own organization, as always', async () => {
+      withDemoAccounts()
+      renderApp('/login')
+      await heading('Sign in')
+      await screen.findByRole('region', { name: 'Just looking around?' })
+
+      fireEvent.change(screen.getByLabelText('Email'), { target: { value: 'luna@demo.test' } })
+      fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'Playtest-demo-1' } })
+      fireEvent.click(screen.getByRole('button', { name: 'Sign in' }))
+
+      await heading('Press start') // the personal organization, empty
+      expect(getLastOrganizationId()).not.toBe(3)
     })
 
     it('is not mistaken for the form: the form still needs its own email and password', async () => {

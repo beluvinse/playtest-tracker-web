@@ -91,6 +91,7 @@ export function organization(overrides: Partial<OrganizationDto> = {}): Organiza
 // What GET /api/demo answers: an Owner and two Members of the example organization
 export function demoInfo(overrides: Partial<DemoInfoDto> = {}): DemoInfoDto {
   return {
+    organizationId: 3,
     organizationName: 'Pink in the Night Studio',
     password: 'Playtest-demo-1',
     accounts: [
