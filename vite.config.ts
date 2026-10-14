@@ -3,6 +3,10 @@ import { defineConfig } from 'vitest/config'
 
 // https://vite.dev/config/
 export default defineConfig({
+  // The folder the site is served from. On your computer it's the root ("/"). On GitHub Pages the
+  // site lives at https://<user>.github.io/<repository>/, so every file (scripts, styles, icon)
+  // has to be asked for under "/<repository>/". The deploy workflow sets BASE_PATH for that.
+  base: process.env.BASE_PATH ?? '/',
   plugins: [react()],
   test: {
     // The tests run in Node, with jsdom playing the part of the browser (document, localStorage…)

@@ -1,0 +1,83 @@
+# Deploy: publishes the frontend on GitHub Pages every time something lands on main.
+# GitHub Pages only serves files (HTML, JS, CSS): it never runs code. That's all a React app
+# needs once it's built, because the code runs in the visitor's browser, not on GitHub.
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # also lets you run it by hand from the Actions tab
+
+# What this robot may do: read the code, and publish to Pages (that needs the two extra permissions)
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# If two deploys start together, the older one is cancelled: only the newest matters
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Install packages
+        run: npm ci
+
+      # The address of the deployed API is not a secret (anyone can see it in the browser), so it
+      # lives in a repository "variable": Settings > Secrets and variables > Actions > Variables.
+      # It is baked into the files at build time, which is why it has to exist before building.
+      - name: Check the API address is set
+        env:
+          API_URL: ${{ vars.API_URL }}
+        run: |
+          if [ -z "$API_URL" ]; then
+            echo "Set the repository variable API_URL (the address of the deployed API)."
+            exit 1
+          fi
+
+      # BASE_PATH: the site is served from /<repository>/ (see vite.config.ts)
+      - name: Build
+        run: npm run build
+        env:
+          VITE_API_URL: ${{ vars.API_URL }}
+          BASE_PATH: /${{ github.event.repository.name }}/
+
+      # GitHub Pages has no idea about React Router's pages: asked for /projects/3 it looks for a
+      # file with that name, doesn't find it and shows its 404 page. If that 404 page IS the app,
+      # the app starts, reads the address and shows the right screen. So: a copy of index.html.
+      - name: Make unknown addresses open the app
+        run: cp dist/index.html dist/404.html
+
+      # Packs the dist folder in the format Pages expects
+      - name: Upload the site
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    name: Publish
+    needs: build   # only runs if the build worked
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
