@@ -85,7 +85,6 @@ export function RegisterPage() {
             required
             minLength={displayNameMinLength}
             maxLength={displayNameMaxLength}
-            placeholder="belu"
             aria-invalid={Boolean(nameMessages)}
             autoComplete="nickname"
             autoFocus
