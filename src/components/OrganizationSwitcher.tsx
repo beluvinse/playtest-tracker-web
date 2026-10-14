@@ -70,6 +70,11 @@ export function OrganizationSwitcher({ organizations, current, isLoading }: Orga
             )}
           </Link>
         ))}
+        <div className="switcher-divider" aria-hidden="true" />
+        <Link to="/organizations/new" className="switcher-option switcher-new" onClick={closeMenu}>
+          <PixelIcon name="plus" size={12} />
+          <span>New organization</span>
+        </Link>
       </div>
     </details>
   )

@@ -1,7 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { Navigate } from 'react-router'
+import { Link, Navigate } from 'react-router'
 import { getOrganizations, organizationKeys } from '../api/organizations'
 import { ErrorMessage } from '../components/ErrorMessage'
+import { PixelIcon } from '../components/PixelIcon'
 import { getLastOrganizationId } from '../organizations/lastOrganization'
 import { pickOrganization } from '../organizations/pickOrganization'
 
@@ -34,6 +35,10 @@ export function HomePage() {
         <p className="muted">
           Every project lives inside an organization, and you don't belong to any right now.
         </p>
+        <Link to="/organizations/new" className="button-primary button-small">
+          <PixelIcon name="plus" size={10} />
+          New organization
+        </Link>
       </section>
     )
   }

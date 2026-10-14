@@ -7,6 +7,7 @@ import { HomePage } from './pages/HomePage'
 import { LoginPage } from './pages/LoginPage'
 import { MembersPage } from './pages/MembersPage'
 import { NewBugPage } from './pages/NewBugPage'
+import { NewOrganizationPage } from './pages/NewOrganizationPage'
 import { NewProjectPage } from './pages/NewProjectPage'
 import { ProjectPage } from './pages/ProjectPage'
 import { ProjectsPage } from './pages/ProjectsPage'
@@ -26,6 +27,8 @@ function App() {
         <Route element={<ShellLayout />}>
           {/* "/" has nothing of its own: it sends the person to one of their organizations */}
           <Route path="/" element={<HomePage />} />
+          {/* A fixed segment ("new") wins over a parameter (":organizationId"), whatever the order */}
+          <Route path="/organizations/new" element={<NewOrganizationPage />} />
           {/* Like GET /api/organizations/{id}/projects: projects are listed and created inside an organization */}
           <Route path="/organizations/:organizationId" element={<ProjectsPage />} />
           <Route

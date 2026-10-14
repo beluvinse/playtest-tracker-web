@@ -85,10 +85,13 @@ export function AppShell({ children }: { children: ReactNode }) {
 
   // What the breadcrumb shows when no project is selected
   const isMembers = useMatch('/organizations/:organizationId/members') !== null
+  const isNewOrganization = useMatch('/organizations/new') !== null
   const isNewProject =
     useMatch('/organizations/:organizationId/projects/new') !== null ||
     (projectsQuery.isSuccess && projects.length === 0)
-  const pageLabel = isMembers
+  const pageLabel = isNewOrganization
+    ? 'new organization'
+    : isMembers
     ? 'people'
     : isNewProject
       ? 'new project'

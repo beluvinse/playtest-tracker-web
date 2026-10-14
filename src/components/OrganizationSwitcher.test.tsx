@@ -62,7 +62,15 @@ describe('OrganizationSwitcher', () => {
         '/organizations/1',
         '/organizations/2',
         '/organizations/3',
+        '/organizations/new', // and, after them, the way to make another one
       ])
+    })
+
+    it('ends with a "New organization" link', () => {
+      show([personal, studio, demo], personal)
+
+      const link = screen.getByRole('link', { name: /New organization/ })
+      expect(link.getAttribute('href')).toBe('/organizations/new')
     })
 
     it('marks the current one, and only that one', () => {
