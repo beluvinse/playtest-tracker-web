@@ -25,8 +25,15 @@ export function RemoveMemberButton({ organization, member, isMe }: RemoveMemberB
       dialogRef.current?.close()
 
       if (isMe) {
-        // The organization is no longer theirs. Leave first: this page would otherwise refetch
-        // its people and get a 404. "/" finds another organization to open.
+        // The organization is no longer theirs. Take it out of the list we hold BEFORE leaving:
+        // "/" picks where to go from that list, and until the refreshed one arrives it would
+        // still be there, sending the person right back to the organization they just left.
+        queryClient.setQueryData<OrganizationDto[]>(organizationKeys.all, (organizations) =>
+          organizations?.filter((candidate) => candidate.id !== organization.id),
+        )
+
+        // Leave: this page would otherwise refetch its people and get a 404.
+        // "/" finds another organization to open.
         navigate('/', { replace: true })
 
         // Only the list of their organizations changes (this one is gone from it). Asking for

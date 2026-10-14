@@ -15,7 +15,13 @@ export interface FakeRequest {
   body: unknown // the JSON the request sent, if any
 }
 
-type Handler = FakeResponse | ((request: FakeRequest) => FakeResponse)
+// A function can also answer LATER (return a promise): that is how a test makes the API slow,
+// to see what the app does in the moment between asking and getting the answer.
+type Handler = FakeResponse | ((request: FakeRequest) => FakeResponse | Promise<FakeResponse>)
+
+// Answers after a while (for the handlers that return a promise)
+export const afterAWhile = <T>(answer: T, milliseconds = 150): Promise<T> =>
+  new Promise((resolve) => setTimeout(() => resolve(answer), milliseconds))
 
 // A stand-in for the real API. It replaces fetch, so the app code runs unchanged
 // but nothing goes over the network. Routes are written as "METHOD /path".
@@ -39,7 +45,7 @@ export function installFakeApi(routes: Record<string, Handler>) {
       return new Response(JSON.stringify({ title: 'No fake route' }), { status: 404 })
     }
 
-    const { status, body } = typeof handler === 'function' ? handler(request) : handler
+    const { status, body } = await (typeof handler === 'function' ? handler(request) : handler)
     return new Response(body === undefined ? null : JSON.stringify(body), {
       status,
       headers: { 'Content-Type': 'application/json' },

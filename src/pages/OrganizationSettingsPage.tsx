@@ -5,6 +5,7 @@ import { useParams } from 'react-router'
 import { ApiError } from '../api/client'
 import { getOrganizations, organizationKeys, renameOrganization } from '../api/organizations'
 import type { OrganizationDto } from '../api/types'
+import { DeleteOrganizationButton } from '../components/DeleteOrganizationButton'
 import { ErrorMessage } from '../components/ErrorMessage'
 import { FieldErrors } from '../components/FieldErrors'
 import { OrganizationNotFound } from '../components/OrganizationNotFound'
@@ -62,7 +63,16 @@ export function OrganizationSettingsPage() {
       ) : organization.myRole !== 'Owner' ? (
         <p className="member-note">Only the owner can change the settings of an organization.</p>
       ) : (
-        <RenameForm organization={organization} />
+        <>
+          <RenameForm organization={organization} />
+          <section className="settings-section settings-danger" aria-label="Delete the organization">
+            <h2 className="settings-heading">Delete this organization</h2>
+            <p className="form-hint">
+              Its projects have to be deleted first. People lose access to it, but keep their accounts.
+            </p>
+            <DeleteOrganizationButton organization={organization} isOnlyOne={organizations?.length === 1} />
+          </section>
+        </>
       )}
     </>
   )

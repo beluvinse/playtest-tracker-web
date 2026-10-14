@@ -738,6 +738,21 @@ a.project-row .col-created {
   max-width: 560px;
 }
 
+/* The "delete" part of the settings: a heading, what it means, and the button */
+.settings-danger {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.settings-heading {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--signal-critical);
+}
+
 .member-add-row {
   display: flex;
   align-items: flex-end;

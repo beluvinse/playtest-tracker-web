@@ -1,20 +1,9 @@
 import { fireEvent, screen, waitFor, within } from '@testing-library/react'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import type { MemberDto } from '../api/types'
 import { setToken } from '../auth/tokenStorage'
-import { installFakeApi, member, organization } from '../test/fakeApi'
+import { afterAWhile, installFakeApi, member, organization } from '../test/fakeApi'
 import { apiRoutes, heading, renderApp } from '../test/renderApp'
-
-// The browser's own <dialog> methods aren't in jsdom: these do what they do (open / close it)
-beforeEach(() => {
-  HTMLDialogElement.prototype.showModal = function showModal() {
-    this.setAttribute('open', '')
-  }
-  HTMLDialogElement.prototype.close = function close() {
-    this.removeAttribute('open')
-    this.dispatchEvent(new Event('close'))
-  }
-})
 
 const mine = organization({ id: 1, name: "Ana's space", myRole: 'Owner', memberCount: 3 })
 const studio = organization({ id: 2, name: 'Night Owls', myRole: 'Member', memberCount: 2 })
@@ -189,6 +178,33 @@ describe('removing people and leaving', () => {
 
       // no page tried to load the people of an organization that is no longer hers (it would be a 404)
       expect(api.count('GET /api/organizations/2/members')).toBe(askedBefore)
+    })
+
+    it('does not go back to the organization she left while the refreshed list is still on its way', async () => {
+      // Right after leaving, the app still holds the OLD list (with the organization in it) until
+      // the new one arrives. Where it goes next must not be picked from the old one.
+      let left = false
+      const api = signedIn({
+        'GET /api/organizations': () =>
+          left
+            ? afterAWhile({ status: 200, body: [mine, demo] }) // slow, and without the studio
+            : { status: 200, body: [mine, studio, demo] },
+        'DELETE /api/organizations/2/members/user-1': () => {
+          left = true
+          return { status: 204 }
+        },
+      })
+      renderApp('/organizations/2/members') // so the studio is also the "last one used"
+      await heading('People')
+      fireEvent.click(await screen.findByRole('button', { name: 'Leave Night Owls' }))
+      const before = api.requests.length
+
+      fireEvent.click(within(screen.getByRole('dialog')).getByRole('button', { name: 'Yes, leave' }))
+      await heading('Press start') // her personal organization
+
+      const after = api.requests.slice(before).filter((request) => request.method !== 'DELETE')
+      expect(after.some((request) => request.path.startsWith('/api/organizations/2'))).toBe(false)
+      expect(screen.queryByText('Organization not found')).toBeNull()
     })
 
     it('no longer lists the organization she left in the switcher', async () => {
