@@ -3,16 +3,24 @@ interface PaginationProps {
   pageSize: number
   totalCount: number
   onPageChange: (page: number) => void
+  // What the navigation is called for screen readers ("Bug list pages", "People pages")
+  label?: string
 }
 
 // "11–20 of 34 · page 2/4" plus ‹ ›. The count line shows even with a single page.
-export function Pagination({ page, pageSize, totalCount, onPageChange }: PaginationProps) {
+export function Pagination({
+  page,
+  pageSize,
+  totalCount,
+  onPageChange,
+  label = 'Bug list pages',
+}: PaginationProps) {
   const totalPages = Math.ceil(totalCount / pageSize)
   const first = (page - 1) * pageSize + 1
   const last = Math.min(page * pageSize, totalCount)
 
   return (
-    <nav className="pagination" aria-label="Bug list pages">
+    <nav className="pagination" aria-label={label}>
       <span>
         {first}–{last} of {totalCount}
         {totalPages > 1 && ` · page ${page}/${totalPages}`}

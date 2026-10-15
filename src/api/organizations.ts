@@ -4,6 +4,7 @@ import type {
   MemberDto,
   OrganizationDto,
   OrganizationRequest,
+  PagedResult,
 } from './types'
 
 // Keys TanStack Query uses to cache each response. Invalidating organizationKeys.all
@@ -12,6 +13,9 @@ export const organizationKeys = {
   all: ['organizations'] as const,
   detail: (id: number) => ['organizations', id] as const,
   members: (id: number) => ['organizations', id, 'members'] as const,
+  // One page of the people. It starts with the key above, so invalidating that one refetches
+  // every page that is cached.
+  membersPage: (id: number, page: number) => ['organizations', id, 'members', { page }] as const,
 }
 
 // ---- The organizations ----
@@ -47,9 +51,22 @@ export function deleteOrganization(id: number) {
 
 // ---- Their people ----
 
-// Any member can see them. The Owner comes first.
-export function getMembers(organizationId: number) {
-  return apiRequest<MemberDto[]>(`/api/organizations/${organizationId}/members`)
+// Members per page. The API accepts 1 to 50.
+export const membersPageSize = 10
+
+// Any member can see them, one page at a time. The Owner comes first.
+export async function getMembers(organizationId: number, page = 1): Promise<PagedResult<MemberDto>> {
+  const answer = await apiRequest<PagedResult<MemberDto> | MemberDto[]>(
+    `/api/organizations/${organizationId}/members`,
+    { query: { page, pageSize: membersPageSize } },
+  )
+
+  // Until the API is updated it still answers with the whole list and ignores the page: treat it
+  // as a single page, so this screen works with both versions during the deploy
+  if (Array.isArray(answer)) {
+    return { items: answer, page: 1, pageSize: Math.max(answer.length, 1), totalCount: answer.length }
+  }
+  return answer
 }
 
 // Only the Owner. 404 (with the message on "email") when nobody has an account with that email,

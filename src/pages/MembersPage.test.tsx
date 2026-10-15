@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react'
+import { fireEvent, screen, waitFor, within } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 import { setToken } from '../auth/tokenStorage'
 import { installFakeApi, member, organization } from '../test/fakeApi'
@@ -142,5 +142,112 @@ describe('the people of an organization', () => {
 
       expect(await screen.findByText('Something broke')).toBeTruthy()
     })
+  })
+})
+
+// The example organization has many people (every visitor who signs up joins it), so the list
+// comes one page at a time
+describe('a long list of people', () => {
+  const studio25 = organization({ id: 2, name: 'Night Owls', myRole: 'Member', memberCount: 25 })
+  const everybody = Array.from({ length: 25 }, (_, index) =>
+    member({
+      userId: `user-${index + 20}`,
+      displayName: `Person ${index + 1}`,
+      email: `person${index + 1}@test.local`,
+      role: index === 0 ? 'Owner' : 'Member',
+    }),
+  )
+
+  // Answers like the API: the page and pageSize that were asked for
+  function paged(request: { search: string }) {
+    const query = new URLSearchParams(request.search)
+    const page = Number(query.get('page') ?? 1)
+    const pageSize = Number(query.get('pageSize') ?? 10)
+    return {
+      status: 200,
+      body: {
+        items: everybody.slice((page - 1) * pageSize, page * pageSize),
+        page,
+        pageSize,
+        totalCount: everybody.length,
+      },
+    }
+  }
+
+  function signedInWithMany() {
+    setToken('token-for-ana')
+    return installFakeApi({
+      ...apiRoutes,
+      'GET /api/organizations': { status: 200, body: [studio25] },
+      'GET /api/organizations/2/projects': { status: 200, body: [] },
+      'GET /api/organizations/2/members': paged,
+    })
+  }
+
+  const rows = () => screen.getAllByRole('listitem').filter((row) => row.classList.contains('member-row'))
+
+  it('shows the first ten, and says how many there are in total', async () => {
+    const api = signedInWithMany()
+
+    renderApp('/organizations/2/members')
+
+    await heading('People')
+    expect(rows()).toHaveLength(10)
+    expect(screen.getByText('25 members')).toBeTruthy()
+    expect(screen.getByText(/1–10 of 25/)).toBeTruthy()
+    expect(api.requests.some((r) => r.search === '?page=1&pageSize=10')).toBe(true)
+  })
+
+  it('goes to the next page and shows the next ten', async () => {
+    const api = signedInWithMany()
+    renderApp('/organizations/2/members')
+    await heading('People')
+
+    fireEvent.click(screen.getByRole('button', { name: 'Next page' }))
+
+    expect(await screen.findByText('Person 11')).toBeTruthy()
+    expect(screen.queryByText('Person 1')).toBeNull()
+    expect(screen.getByText(/11–20 of 25/)).toBeTruthy()
+    expect(api.requests.some((r) => r.search === '?page=2&pageSize=10')).toBe(true)
+  })
+
+  it('opens straight on the page in the address, with a short last page', async () => {
+    signedInWithMany()
+
+    renderApp('/organizations/2/members?page=3')
+
+    await screen.findByText('Person 21')
+    expect(rows()).toHaveLength(5)
+    expect(screen.getByText(/21–25 of 25/)).toBeTruthy()
+  })
+
+  it('offers a way back when the page is past the end', async () => {
+    signedInWithMany()
+
+    renderApp('/organizations/2/members?page=9')
+
+    fireEvent.click(await screen.findByRole('button', { name: 'Go to the first page' }))
+
+    await waitFor(() => expect(screen.getByText('Person 1')).toBeTruthy())
+    expect(rows()).toHaveLength(10)
+  })
+
+  it('shows no page controls when everybody fits on one page', async () => {
+    setToken('token-for-ana')
+    installFakeApi({
+      ...apiRoutes,
+      'GET /api/organizations': { status: 200, body: [personal, studio] },
+      'GET /api/organizations/2/projects': { status: 200, body: [] },
+      'GET /api/organizations/2/members': {
+        status: 200,
+        body: { items: [luna, ana, ben], page: 1, pageSize: 10, totalCount: 3 },
+      },
+    })
+
+    renderApp('/organizations/2/members')
+
+    await heading('People')
+    expect(rows()).toHaveLength(3)
+    expect(screen.queryByRole('navigation', { name: 'People pages' })).toBeNull()
   })
 })

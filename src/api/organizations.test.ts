@@ -71,14 +71,28 @@ describe('the organization API', () => {
   })
 
   describe('members', () => {
-    it('lists the people of an organization', async () => {
+    it('asks for one page of the people and gives back the page as the API sends it', async () => {
+      const page = { items: [{ userId: 'u1' }], page: 2, pageSize: 10, totalCount: 11 }
       const api = installFakeApi({
-        'GET /api/organizations/3/members': { status: 200, body: [{ userId: 'u1' }] },
+        'GET /api/organizations/3/members': { status: 200, body: page },
       })
 
-      expect(await getMembers(3)).toEqual([{ userId: 'u1' }])
+      expect(await getMembers(3, 2)).toEqual(page)
 
       expect(api.requests[0].path).toBe('/api/organizations/3/members')
+      expect(api.requests[0].search).toBe('?page=2&pageSize=10')
+    })
+
+    it('still understands an API that answers with the whole list (not updated yet)', async () => {
+      installFakeApi({
+        'GET /api/organizations/3/members': { status: 200, body: [{ userId: 'u1' }, { userId: 'u2' }] },
+      })
+
+      const result = await getMembers(3)
+
+      expect(result.items).toEqual([{ userId: 'u1' }, { userId: 'u2' }])
+      expect(result.totalCount).toBe(2)
+      expect(result.page).toBe(1)
     })
 
     it('adds someone by POSTing their email', async () => {
