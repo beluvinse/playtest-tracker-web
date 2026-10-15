@@ -1,6 +1,6 @@
 import { keepPreviousData, useQuery } from '@tanstack/react-query'
-import type { ReactNode } from 'react'
-import { Link } from 'react-router'
+import type { MouseEvent, ReactNode } from 'react'
+import { Link, useNavigate } from 'react-router'
 import { bugKeys, getProjectBugs } from '../api/bugs'
 import type { BugDto } from '../api/types'
 import { toBugListParams, useBugFilters } from '../hooks/useBugFilters'
@@ -106,6 +106,16 @@ interface BugTableProps {
 }
 
 function BugTable({ bugs, projectCode, isUpdating }: BugTableProps) {
+  const navigate = useNavigate()
+
+  // Clicking anywhere on a row opens the bug (the title is still a real link, for the keyboard,
+  // for "open in a new tab" and for screen readers)
+  function openBug(event: MouseEvent<HTMLTableRowElement>, bugId: number) {
+    if ((event.target as HTMLElement).closest('a')) return // the link does it itself
+    if (window.getSelection()?.toString()) return // somebody is selecting text to copy it
+    navigate(`/bugs/${bugId}`)
+  }
+
   return (
     // On narrow screens the table scrolls sideways instead of stretching the page
     <div className="table-scroll" aria-busy={isUpdating}>
@@ -121,10 +131,10 @@ function BugTable({ bugs, projectCode, isUpdating }: BugTableProps) {
         </thead>
         <tbody>
           {bugs.map((bug) => (
-            <tr key={bug.id}>
+            <tr key={bug.id} onClick={(event) => openBug(event, bug.id)}>
               <td className="bug-id">{bugCode(projectCode, bug.id)}</td>
               <td className="bug-title">
-                {/* The link covers the whole row (CSS), but it's still one link per bug */}
+                {/* One real link per bug; clicks on the rest of the row are handled by the row */}
                 <Link to={`/bugs/${bug.id}`}>{bug.title}</Link>
               </td>
               <td>

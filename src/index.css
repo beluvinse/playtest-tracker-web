@@ -1104,8 +1104,16 @@ a.project-row .col-created {
   font-weight: 500;
 }
 
-/* The row is the positioning box for the link's ::after below */
+/* The whole row opens the bug (BugTable handles the click), so it looks clickable */
 .bug-table tbody tr {
+  cursor: pointer;
+}
+
+/* The title cell is the positioning box for the link's ::after below. It is a cell, not the
+   row on purpose: browsers don't all treat a table row (<tr>) as a positioning box, and where
+   they don't, the invisible layer below grows to cover the WHOLE PAGE and every tap, on the
+   buttons and filters too, opens a bug. */
+.bug-title {
   position: relative;
 }
 
@@ -1114,19 +1122,20 @@ a.project-row .col-created {
   text-decoration: none;
 }
 
-/* "Stretched link": an invisible layer that covers the whole row, so clicking anywhere
-   opens the bug, while screen readers still hear a single link (the title) */
+/* "Stretched link": an invisible layer that covers the title cell, so the title is a big target,
+   while screen readers still hear a single link */
 .bug-title a::after {
   content: '';
   position: absolute;
   inset: 0;
 }
 
+/* Keyboard focus: the ring goes around the whole row, which is what the link opens */
 .bug-title a:focus-visible {
   outline: none;
 }
 
-.bug-title a:focus-visible::after {
+.bug-table tbody tr:has(.bug-title a:focus-visible) {
   outline: 2px solid var(--signal-open);
   outline-offset: -2px;
 }
